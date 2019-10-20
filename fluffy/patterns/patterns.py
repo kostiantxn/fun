@@ -19,7 +19,7 @@ def as_pattern(value: Any) -> 'Pattern':
     elif isinstance(value, Pattern):
         return value
     elif isinstance(value, expressions.Variable):
-        return Variable(value)
+        return Variable(value.name)
 
     raise ValueError(f'Value {repr(value)} cannot be '
                      f'converted to a pattern.')
@@ -35,7 +35,7 @@ class Pattern(metaclass=ABCMeta):
 
 
 class Constant(Pattern):
-    """A pattern that matches any constant value."""
+    """A pattern that matches a constant value."""
 
     def __init__(self, pattern: Any):
         self.pattern = pattern
@@ -50,11 +50,11 @@ class Constant(Pattern):
 class Variable(Pattern):
     """A pattern that matches against a variable."""
 
-    def __init__(self, pattern: expressions.Variable):
-        self.pattern = pattern
+    def __init__(self, name: str):
+        self.name = name
 
     def match(self, value: Any) -> Optional[Dict]:
-        return success({self.pattern.name: value})
+        return success({self.name: value})
 
 
 class Sequence(Pattern):
@@ -100,7 +100,40 @@ class Dictionary(Pattern):
         self.pattern = pattern
 
     def match(self, value: Any) -> Optional[Dict]:
-        pass
+        if not isinstance(value, dict):
+            return fail()
+
+        args = {}
+        value = dict(value)
+
+        for pkey, pvalue in self.pattern.items():
+            pkey, pvalue = as_pattern(pkey), as_pattern(pvalue)
+            found = None
+
+            for vkey, vvalue in value.items():
+                x = pkey.match(vkey)
+                y = pvalue.match(vvalue)
+
+                if x is not None and y is not None:
+                    # todo: check name collisions
+                    args.update(x)
+                    args.update(y)
+                    found = vkey
+
+                    # todo:
+                    #   don't break and try to find any other matches
+                    #   raise an error in case of double match
+                    break
+
+            if found is None:
+                return fail()
+            else:
+                value.pop(found)
+
+        if len(value) > 0:
+            return fail()
+        else:
+            return success(args)
 
 
 class Dataclass(Pattern):
@@ -110,7 +143,17 @@ class Dataclass(Pattern):
         self.pattern = pattern
 
     def match(self, value: Any) -> Optional[Dict]:
-        pass
+        raise NotImplemented
+
+
+class Regex(Pattern):
+    """A pattern that matches regex groups."""
+
+    def __init__(self, pattern):
+        self.pattern = pattern
+
+    def match(self, value: Any) -> Optional[Dict]:
+        raise NotImplemented
 
 
 def success(args: Optional[Dict] = None):
