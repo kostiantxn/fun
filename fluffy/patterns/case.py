@@ -5,9 +5,9 @@ from fluffy.patterns.expressions import as_expression
 class Case:
     """Contains a pair of (<pattern>, <expression>)."""
 
-    def __init__(self, pattern, result):
+    def __init__(self, pattern, expression):
         self._pattern = as_pattern(pattern)
-        self._expression = as_expression(result)
+        self._expression = as_expression(expression)
 
     def __iter__(self):
         return iter([self._pattern, self._expression])
