@@ -2,20 +2,28 @@ from abc import ABCMeta, abstractmethod
 from typing import Any, Optional, Dict
 from dataclasses import is_dataclass
 
+import fluffy.patterns.expressions as expressions
 
-def as_pattern(value):
+
+def as_pattern(value: Any) -> 'Pattern':
     """Wraps the `value` into a `Pattern` object."""
 
     if is_dataclass(value):
-        return DataclassPattern(value)
+        return Dataclass(value)
     elif isinstance(value, list):
-        return ListPattern(value)
+        return List(value)
     elif isinstance(value, tuple):
-        return TuplePattern(value)
+        return Tuple(value)
     elif isinstance(value, dict):
-        return DictPattern(value)
-    else:
-        return ConstantPattern(value)
+        return Dictionary(value)
+    elif isinstance(value, Pattern):
+        return value
+    elif isinstance(value, expressions.Variable):
+        return Variable(value)
+    elif any(isinstance(value, cls) for cls in [int, float, bool, str]):
+        return Constant(value)
+
+    raise ValueError(f'Value {repr(value)} cannot be converted to a pattern.')
 
 
 class Pattern(metaclass=ABCMeta):
@@ -27,27 +35,66 @@ class Pattern(metaclass=ABCMeta):
         in case of success or none in case of failure."""
 
 
-class DataclassPattern(Pattern):
-    """A pattern that matches dataclasses."""
+class Constant(Pattern):
+    """A pattern that matches any constant value."""
 
-    def __init__(self, pattern):
+    def __init__(self, pattern: Any):
         self.pattern = pattern
 
     def match(self, value: Any) -> Optional[Dict]:
-        pass
+        if value == self.pattern:
+            return success()
+        else:
+            return fail()
 
 
-class ListPattern(Pattern):
+class Variable(Pattern):
+    """A pattern that matches against a variable."""
+
+    def __init__(self, pattern: expressions.Variable):
+        self.pattern = pattern
+
+    def match(self, value: Any) -> Optional[Dict]:
+        return success({self.pattern.name: value})
+
+
+class List(Pattern):
     """A pattern that matches lists."""
 
     def __init__(self, pattern: list):
         self.pattern = pattern
 
     def match(self, value: Any) -> Optional[Dict]:
-        pass
+        if not isinstance(value, list):
+            return fail()
+
+        args = {}
+        none = object()
+
+        f = iter(self.pattern)
+        g = iter(value)
+
+        while True:
+            a = next(f, none)
+            b = next(g, none)
+
+            if a is none and b is none:
+                return success(args)
+            if a is none or b is none:
+                return fail()
+
+            if (x := as_pattern(a).match(b)) is not None:
+                for name in x:
+                    if name not in args:
+                        args[name] = x[name]
+                    else:
+                        raise NameError(f"Variable '{name}' has "
+                                        f"already been defined.")
+            else:
+                return fail()
 
 
-class TuplePattern(Pattern):
+class Tuple(Pattern):
     """A pattern that matches tuples."""
 
     def __init__(self, pattern: tuple):
@@ -57,7 +104,7 @@ class TuplePattern(Pattern):
         pass
 
 
-class DictPattern(Pattern):
+class Dictionary(Pattern):
     """A pattern that matches dictionaries."""
 
     def __init__(self, pattern: dict):
@@ -67,14 +114,19 @@ class DictPattern(Pattern):
         pass
 
 
-class ConstantPattern(Pattern):
-    """A pattern that matches any constant value."""
+class Dataclass(Pattern):
+    """A pattern that matches dataclasses."""
 
-    def __init__(self, pattern: Any):
+    def __init__(self, pattern):
         self.pattern = pattern
 
     def match(self, value: Any) -> Optional[Dict]:
-        if value == self.pattern:
-            return {}
-        else:
-            return None
+        pass
+
+
+def success(args: Optional[Dict] = None):
+    return args or {}
+
+
+def fail():
+    return None

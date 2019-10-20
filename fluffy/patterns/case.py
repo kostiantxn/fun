@@ -1,5 +1,5 @@
 from fluffy.patterns.patterns import as_pattern
-from fluffy.patterns.expression import as_expression
+from fluffy.patterns.expressions import as_expression
 
 
 class Case:
@@ -10,7 +10,7 @@ class Case:
         self._expression = as_expression(result)
 
     def __iter__(self):
-        return self._pattern, self._expression
+        return iter([self._pattern, self._expression])
 
 
 class Create:
@@ -20,10 +20,10 @@ class Create:
         def __init__(self, pattern):
             self.pattern = pattern
 
-        def __gt__(self, expression):
+        def __gt__(self, expression) -> Case:
             return Case(self.pattern, expression)
 
-    def __or__(self, pattern):
+    def __or__(self, pattern) -> 'Create.Pattern':
         return Create.Pattern(pattern)
 
 

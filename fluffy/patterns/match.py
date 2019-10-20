@@ -12,6 +12,6 @@ def match(value: Any, *cases: Case):
 
     for pattern, expression in cases:
         if (args := pattern.match(value)) is not None:
-            return expression.eval(**args)
+            return expression.eval(args)
 
     raise ValueError(f"Could not match {repr(value)}.")
