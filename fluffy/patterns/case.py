@@ -1,18 +1,19 @@
+from fluffy.patterns.patterns import as_pattern
+from fluffy.patterns.expression import as_expression
+
+
 class Case:
     """Contains a pair of (<pattern>, <expression>)."""
 
     def __init__(self, pattern, result):
-        self._pattern = pattern
-        self._expression = result
+        self._pattern = as_pattern(pattern)
+        self._expression = as_expression(result)
 
     def __iter__(self):
         return self._pattern, self._expression
 
-    def __repr__(self):
-        return f'Case({repr(self._pattern)}, {repr(self._expression)})'
 
-
-class Creation:
+class Create:
     """Defines operators that allow to create `Case` instances."""
 
     class Pattern:
@@ -23,7 +24,7 @@ class Creation:
             return Case(self.pattern, expression)
 
     def __or__(self, pattern):
-        return Creation.Pattern(pattern)
+        return Create.Pattern(pattern)
 
 
-case = Creation()
+case = Create()
