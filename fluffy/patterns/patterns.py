@@ -10,9 +10,9 @@ def as_pattern(value: Any) -> 'Pattern':
 
     if is_dataclass(value):
         return Dataclass(value)
-    elif isinstance(value, list):
-        return Sequence(value)
-    elif isinstance(value, tuple):
+    elif isinstance(value, (int, float, complex, bool, str)):
+        return Constant(value)
+    elif isinstance(value, (list, tuple, range)):
         return Sequence(value)
     elif isinstance(value, dict):
         return Dictionary(value)
@@ -20,10 +20,9 @@ def as_pattern(value: Any) -> 'Pattern':
         return value
     elif isinstance(value, expressions.Variable):
         return Variable(value)
-    elif any(isinstance(value, cls) for cls in [int, float, bool, str]):
-        return Constant(value)
 
-    raise ValueError(f'Value {repr(value)} cannot be converted to a pattern.')
+    raise ValueError(f'Value {repr(value)} cannot be '
+                     f'converted to a pattern.')
 
 
 class Pattern(metaclass=ABCMeta):

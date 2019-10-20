@@ -8,8 +8,11 @@ def as_expression(value: Any) -> 'Expression':
 
     if isinstance(value, Expression):
         return value
-    else:
+    elif isinstance(value, (int, float, complex, bool, str)):
         return Constant(value)
+
+    raise ValueError(f'Value {repr(value)} cannot be '
+                     f'converted to an expression.')
 
 
 class Expression(metaclass=ABCMeta):
