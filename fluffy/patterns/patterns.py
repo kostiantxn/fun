@@ -58,9 +58,9 @@ class Variable(Pattern):
 
 
 class Sequence(Pattern):
-    """A pattern that matches sequences (like lists or tuples)."""
+    """A pattern that matches sequences (lists, tuples, ranges)."""
 
-    def __init__(self, pattern: Union[list, tuple]):
+    def __init__(self, pattern: Union[list, tuple, range]):
         self.pattern = pattern
 
     def match(self, value: Any) -> Optional[Dict]:
@@ -70,25 +70,20 @@ class Sequence(Pattern):
         args = {}
         none = object()
 
-        f = iter(self.pattern)
-        g = iter(value)
+        ps = iter(self.pattern)
+        vs = iter(value)
 
         while True:
-            a = next(f, none)
-            b = next(g, none)
+            p = next(ps, none)
+            v = next(vs, none)
 
-            if a is none and b is none:
+            if p is none and v is none:
                 return success(args)
-            if a is none or b is none:
+            if p is none or v is none:
                 return fail()
 
-            if (x := as_pattern(a).match(b)) is not None:
-                for name in x:
-                    if name not in args:
-                        args[name] = x[name]
-                    else:
-                        raise NameError(f"Variable '{name}' has "
-                                        f"already been defined.")
+            if (x := as_pattern(p).match(v)) is not None:
+                merge(x, into=args)
             else:
                 return fail()
 
@@ -115,20 +110,19 @@ class Dictionary(Pattern):
                 y = pvalue.match(vvalue)
 
                 if x is not None and y is not None:
-                    # todo: check name collisions
-                    args.update(x)
-                    args.update(y)
+                    if found is not None:
+                        raise ValueError(f'Pattern ({pkey}: {pvalue}) '
+                                         f'matches multiple pairs.')
+
+                    merge(x, into=args)
+                    merge(y, into=args)
+
                     found = vkey
 
-                    # todo:
-                    #   don't break and try to find any other matches
-                    #   raise an error in case of double match
-                    break
-
-            if found is None:
-                return fail()
-            else:
+            if found is not None:
                 value.pop(found)
+            else:
+                return fail()
 
         if len(value) > 0:
             return fail()
@@ -162,3 +156,14 @@ def success(args: Optional[Dict] = None):
 
 def fail():
     return None
+
+
+def merge(args: Dict, into: Dict):
+    """Merges one dictionary into another one."""
+
+    for name in args:
+        if name not in into:
+            into[name] = args[name]
+        else:
+            raise NameError(f"Variable '{name}' has "
+                            f"already been defined.")
