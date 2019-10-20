@@ -13,4 +13,7 @@ def demo():
                            case | otherwise > 0)
 
     yield match([1, 2, 3], case | [1, 1, 1] > 1,
-                           case | [1, 2, x] > x)
+                           case | [1, 2, x] > (x + 10) * 2)
+
+    yield match([1, 2, 3], case | (1, 2, 3) > 1,
+                           case | [1, 2, 3] > 2)

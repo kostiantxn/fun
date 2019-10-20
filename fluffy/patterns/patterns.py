@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, Union
 from dataclasses import is_dataclass
 
 import fluffy.patterns.expressions as expressions
@@ -11,9 +11,9 @@ def as_pattern(value: Any) -> 'Pattern':
     if is_dataclass(value):
         return Dataclass(value)
     elif isinstance(value, list):
-        return List(value)
+        return Sequence(value)
     elif isinstance(value, tuple):
-        return Tuple(value)
+        return Sequence(value)
     elif isinstance(value, dict):
         return Dictionary(value)
     elif isinstance(value, Pattern):
@@ -58,14 +58,14 @@ class Variable(Pattern):
         return success({self.pattern.name: value})
 
 
-class List(Pattern):
-    """A pattern that matches lists."""
+class Sequence(Pattern):
+    """A pattern that matches sequences (like lists or tuples)."""
 
-    def __init__(self, pattern: list):
+    def __init__(self, pattern: Union[list, tuple]):
         self.pattern = pattern
 
     def match(self, value: Any) -> Optional[Dict]:
-        if not isinstance(value, list):
+        if not isinstance(value, type(self.pattern)):
             return fail()
 
         args = {}
@@ -92,16 +92,6 @@ class List(Pattern):
                                         f"already been defined.")
             else:
                 return fail()
-
-
-class Tuple(Pattern):
-    """A pattern that matches tuples."""
-
-    def __init__(self, pattern: tuple):
-        self.pattern = pattern
-
-    def match(self, value: Any) -> Optional[Dict]:
-        pass
 
 
 class Dictionary(Pattern):
