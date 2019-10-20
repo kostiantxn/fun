@@ -48,13 +48,16 @@ class Constant(Pattern):
 
 
 class Variable(Pattern):
-    """A pattern that matches against a variable."""
+    """A pattern that matches a variable."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: Optional[str]):
         self.name = name
 
     def match(self, value: Any) -> Optional[Dict]:
-        return success({self.name: value})
+        if self.name is not None:
+            return success({self.name: value})
+        else:
+            return success()
 
 
 class Sequence(Pattern):
