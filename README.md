@@ -2,6 +2,11 @@
 
 A package for functional programming in Python.
 
+## Content
+
+1. [Pattern matching](#pattern-matching)
+1. [Monads](#monads)
+
 ## Pattern matching
 You can use `fluffy.patterns` for pattern matching.
 Here is a simple example:
