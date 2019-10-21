@@ -42,9 +42,9 @@ class Constant(Pattern):
 
     def match(self, value: Any) -> Optional[Dict]:
         if value == self.pattern:
-            return success()
+            return _success()
         else:
-            return fail()
+            return _fail()
 
 
 class Variable(Pattern):
@@ -55,9 +55,9 @@ class Variable(Pattern):
 
     def match(self, value: Any) -> Optional[Dict]:
         if self.name is not None:
-            return success({self.name: value})
+            return _success({self.name: value})
         else:
-            return success()
+            return _success()
 
 
 class Sequence(Pattern):
@@ -68,7 +68,7 @@ class Sequence(Pattern):
 
     def match(self, value: Any) -> Optional[Dict]:
         if not isinstance(value, type(self.pattern)):
-            return fail()
+            return _fail()
 
         args = {}
         none = object()
@@ -81,14 +81,14 @@ class Sequence(Pattern):
             v = next(vs, none)
 
             if p is none and v is none:
-                return success(args)
+                return _success(args)
             if p is none or v is none:
-                return fail()
+                return _fail()
 
             if (x := as_pattern(p).match(v)) is not None:
-                merge(x, into=args)
+                _merge(args, x)
             else:
-                return fail()
+                return _fail()
 
 
 class Dictionary(Pattern):
@@ -99,7 +99,7 @@ class Dictionary(Pattern):
 
     def match(self, value: Any) -> Optional[Dict]:
         if not isinstance(value, dict):
-            return fail()
+            return _fail()
 
         args = {}
         value = dict(value)
@@ -117,20 +117,20 @@ class Dictionary(Pattern):
                         raise ValueError(f'Pattern ({pkey}: {pvalue}) '
                                          f'matches multiple pairs.')
 
-                    merge(x, into=args)
-                    merge(y, into=args)
+                    _merge(args, x)
+                    _merge(args, y)
 
                     found = vkey
 
             if found is not None:
                 value.pop(found)
             else:
-                return fail()
+                return _fail()
 
         if len(value) > 0:
-            return fail()
+            return _fail()
         else:
-            return success(args)
+            return _success(args)
 
 
 class Dataclass(Pattern):
@@ -141,7 +141,7 @@ class Dataclass(Pattern):
 
     def match(self, value: Any) -> Optional[Dict]:
         if not isinstance(value, type(self.pattern)):
-            return fail()
+            return _fail()
 
         args = {}
 
@@ -150,11 +150,11 @@ class Dataclass(Pattern):
             v = getattr(value, field.name)
 
             if (x := as_pattern(p).match(v)) is not None:
-                merge(x, into=args)
+                _merge(args, x)
             else:
-                return fail()
+                return _fail()
 
-        return success(args)
+        return _success(args)
 
 
 class Type(Pattern):
@@ -166,9 +166,12 @@ class Type(Pattern):
 
     def match(self, value: Any) -> Optional[Dict]:
         if isinstance(value, self.pattern):
-            return success({self.variable: value})
+            if self.variable is not None:
+                return _success({self.variable: value})
+            else:
+                return _success()
         else:
-            return fail()
+            return _fail()
 
 
 class Regex(Pattern):
@@ -181,20 +184,23 @@ class Regex(Pattern):
         raise NotImplemented
 
 
-def success(args: Optional[Dict] = None) -> Dict:
+def _success(args: Optional[Dict] = None) -> Dict:
+    """Called to indicated a successful match."""
     return args or {}
 
 
-def fail() -> None:
+def _fail() -> None:
+    """Called to indicate a failed match."""
     return None
 
 
-def merge(args: Dict, into: Dict):
-    """Merges one dictionary into another one."""
+def _merge(args: Dict, other: Dict):
+    """Merges the second dictionary into the first one. May raise a
+    `NameError` in case if keys of the specified dictionaries intersect."""
 
-    for name in args:
-        if name not in into:
-            into[name] = args[name]
+    for name in other:
+        if name not in args:
+            args[name] = other[name]
         else:
             raise NameError(f"Variable '{name}' has "
                             f"already been defined.")

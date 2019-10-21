@@ -14,7 +14,7 @@ def raises(error) -> Raises:
 
 def apply(func, *args) -> Function:
     """Returns an instance of `Function` with the specified arguments."""
-    return Function(func, args)
+    return Function(func, *args)
 
 
 def of(cls, variable: Optional[expressions.Variable] = None) -> Type:
