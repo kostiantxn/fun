@@ -1,6 +1,7 @@
 from typing import Any
 
 from fluffy.patterns.case import Case
+from fluffy.patterns.errors import MismatchError
 
 
 def match(value: Any, *cases: Case):
@@ -14,4 +15,4 @@ def match(value: Any, *cases: Case):
         if (args := pattern.match(value)) is not None:
             return expression.eval(args)
 
-    raise ValueError(f"Could not match {repr(value)}.")
+    raise MismatchError(f"Could not match {repr(value)}.")
