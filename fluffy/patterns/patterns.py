@@ -16,8 +16,6 @@ def as_pattern(value: Any) -> 'Pattern':
         return Sequence(value)
     elif isinstance(value, dict):
         return Dictionary(value)
-    elif isinstance(value, type):
-        return Type(value)
     elif isinstance(value, Pattern):
         return value
     elif isinstance(value, expressions.Variable):
@@ -162,11 +160,15 @@ class Dataclass(Pattern):
 class Type(Pattern):
     """A pattern that matches types of input values."""
 
-    def __init__(self, pattern):
+    def __init__(self, pattern, variable):
         self.pattern = pattern
+        self.variable = variable
 
     def match(self, value: Any) -> Optional[Dict]:
-        raise NotImplemented
+        if isinstance(value, self.pattern):
+            return success({self.variable: value})
+        else:
+            return fail()
 
 
 class Regex(Pattern):
@@ -179,11 +181,11 @@ class Regex(Pattern):
         raise NotImplemented
 
 
-def success(args: Optional[Dict] = None):
+def success(args: Optional[Dict] = None) -> Dict:
     return args or {}
 
 
-def fail():
+def fail() -> None:
     return None
 
 
