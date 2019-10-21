@@ -120,3 +120,13 @@ class Raises(Expression):
 
     def eval(self, args):
         raise self._error
+
+
+def raises(error) -> Raises:
+    """Returns an instance of `Raises` with the specified `error`."""
+    return Raises(error)
+
+
+def apply(f, *x) -> Function:
+    """Returns an instance of `Function` with the specified arguments."""
+    return Function(f, x)

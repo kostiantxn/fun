@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, Optional, Dict, Union
-from dataclasses import is_dataclass
+from dataclasses import is_dataclass, fields
 
 import fluffy.patterns.expressions as expressions
 
@@ -135,18 +135,32 @@ class Dictionary(Pattern):
             return success(args)
 
 
-class Type(Pattern):
-    """A pattern that matches types of input values."""
+class Dataclass(Pattern):
+    """A pattern that matches dataclasses."""
 
     def __init__(self, pattern):
         self.pattern = pattern
 
     def match(self, value: Any) -> Optional[Dict]:
-        raise NotImplemented
+        if not isinstance(value, type(self.pattern)):
+            return fail()
+
+        args = {}
+
+        for field in fields(value):
+            p = getattr(self.pattern, field.name)
+            v = getattr(value, field.name)
+
+            if (x := as_pattern(p).match(v)) is not None:
+                merge(x, into=args)
+            else:
+                return fail()
+
+        return success(args)
 
 
-class Dataclass(Pattern):
-    """A pattern that matches dataclasses."""
+class Type(Pattern):
+    """A pattern that matches types of input values."""
 
     def __init__(self, pattern):
         self.pattern = pattern
