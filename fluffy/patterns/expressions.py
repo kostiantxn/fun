@@ -110,3 +110,13 @@ class Function(Expression):
         x = [x.eval(args) for x in self._x]
 
         return f(*x)
+
+
+class Raises(Expression):
+    """An expression that raises an error."""
+
+    def __init__(self, error):
+        self._error = error
+
+    def eval(self, args):
+        raise self._error

@@ -4,6 +4,10 @@ from fluffy.patterns.expressions import *
 from fluffy.patterns.match import *
 from fluffy.patterns.patterns import *
 from fluffy.patterns.variables import *
+from fluffy.patterns.variables import _  # what?
+
+
+raises = Raises
 
 
 def demo():
@@ -32,3 +36,7 @@ def demo():
     yield match({'a': [1, 2, 3]}, case | {'a': [1, x, 3]} > x)
     yield match({'a': 'b'}, case | {x: 'b'} > x)
     yield match({'a': 'b'}, case | {'a': x} > x)
+
+    yield match(0, case | -1 > 'negative',
+                   case | +1 > 'positive',
+                   case | _ > raises(ValueError('neutral')))
