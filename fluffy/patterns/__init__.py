@@ -1,4 +1,5 @@
 from fluffy.patterns.case import *
+from fluffy.patterns.errors import *
 from fluffy.patterns.expressions import *
 from fluffy.patterns.match import *
 from fluffy.patterns.patterns import *
@@ -7,6 +8,9 @@ from fluffy.patterns.variables import *
 
 def demo():
     """A simple demonstration of `match` usage."""
+
+    # todo: make it possible to write
+    #   match('Richard', case | x > x.lower())
 
     yield match([1, 2, 3], case | [1, 1, 1] > 1,
                            case | (1, 2, 3) > 2,

@@ -16,6 +16,8 @@ def as_pattern(value: Any) -> 'Pattern':
         return Sequence(value)
     elif isinstance(value, dict):
         return Dictionary(value)
+    elif isinstance(value, type):
+        return Type(value)
     elif isinstance(value, Pattern):
         return value
     elif isinstance(value, expressions.Variable):
@@ -131,6 +133,16 @@ class Dictionary(Pattern):
             return fail()
         else:
             return success(args)
+
+
+class Type(Pattern):
+    """A pattern that matches types of input values."""
+
+    def __init__(self, pattern):
+        self.pattern = pattern
+
+    def match(self, value: Any) -> Optional[Dict]:
+        raise NotImplemented
 
 
 class Dataclass(Pattern):
