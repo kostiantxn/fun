@@ -9,7 +9,7 @@ def match(value: Any, *cases: Case):
      the corresponding expression in such case. Otherwise raises
      `MismatchError`.
 
-    :param value: input data to match
+    :param value: input value to match
     :param cases: list of cases to match the input against
     """
 

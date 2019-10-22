@@ -17,7 +17,8 @@ class Create:
     """Defines operators that allow to create `Case` instances
     using the following syntax:
         case = Create()
-        case | pattern > expression"""
+        case | pattern > expression  # -> Case(pattern, expression)
+    """
 
     class Pattern:
         def __init__(self, pattern):
@@ -30,4 +31,4 @@ class Create:
         return Create.Pattern(pattern)
 
 
-case = Create()
+case: Create = Create()
