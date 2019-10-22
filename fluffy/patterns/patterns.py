@@ -39,7 +39,7 @@ class Match:
 
     @classmethod
     def success(cls, variables: Optional[Dict] = None) -> 'Match':
-        return Match(variables)
+        return Match(variables or {})
 
     @classmethod
     def failure(cls) -> 'Match':
@@ -69,12 +69,13 @@ class Pattern(metaclass=ABCMeta):
 
     @abstractmethod
     def match(self, value: Any) -> Match:
-        """Returns either a dictionary of matched variables
-        in case of success or none in case of failure."""
+        """Checks whether the specified value matches the pattern
+        and returns an instance of `Match` that represents either
+        a success with matched variables or a failure."""
 
 
 class ConstantPattern(Pattern):
-    """A pattern that matches a constant value."""
+    """A pattern that matches constant values."""
 
     def __init__(self, pattern: Any):
         self.pattern = pattern
@@ -87,7 +88,7 @@ class ConstantPattern(Pattern):
 
 
 class VariablePattern(Pattern):
-    """A pattern that matches a variable."""
+    """A pattern that matches variables."""
 
     def __init__(self, name: Optional[str]):
         self.name = name
@@ -197,7 +198,7 @@ class DataclassPattern(Pattern):
 
 
 class TypePattern(Pattern):
-    """A pattern that matches types of input values."""
+    """A pattern that matches types."""
 
     def __init__(self, pattern, variable):
         self.pattern = pattern
@@ -214,7 +215,7 @@ class TypePattern(Pattern):
 
 
 class RegexPattern(Pattern):
-    """A pattern that matches regex groups."""
+    """A pattern that matches regular expressions."""
 
     def __init__(self, pattern):
         self.pattern = pattern
