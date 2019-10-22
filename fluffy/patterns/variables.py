@@ -1,13 +1,29 @@
+from typing import List, Union
+
 from fluffy.patterns.expressions import Variable
+
+
+def variables(name: Union[list, tuple, str]) -> List[Variable]:
+    """Creates a list of new variables.
+
+    Example:
+          x, y, z = variables('x y z')
+          x, y, z = variables(['x', 'y', 'z'])
+          x, y, z = variables(('x', 'y', 'z'))
+    """
+
+    if not isinstance(name, (list, tuple, str)):
+        raise TypeError(f'Unsupported type: {type(name)}.')
+
+    if isinstance(name, str):
+        name = name.split()
+
+    return list(map(Variable, filter(None, name)))
 
 
 x: Variable = Variable('x')
 y: Variable = Variable('y')
 z: Variable = Variable('z')
-
-xs: Variable = Variable('xs')
-ys: Variable = Variable('ys')
-zs: Variable = Variable('zs')
 
 m: Variable = Variable('m')
 n: Variable = Variable('n')

@@ -2,106 +2,145 @@ from abc import ABCMeta, abstractmethod
 from typing import Any, Optional, Dict, Union
 from dataclasses import is_dataclass, fields
 
-import fluffy.patterns.expressions as expressions
+from fluffy.patterns import Variable
 
 
 def as_pattern(value: Any) -> 'Pattern':
-    """Wraps the `value` into a `Pattern` object."""
+    """Converts `value` into a `Pattern` object."""
 
-    if is_dataclass(value):
-        return Dataclass(value)
-    elif isinstance(value, (int, float, complex, bool, str)):
-        return Constant(value)
-    elif isinstance(value, (list, tuple, range)):
-        return Sequence(value)
-    elif isinstance(value, dict):
-        return Dictionary(value)
-    elif isinstance(value, Pattern):
+    if isinstance(value, Pattern):
         return value
-    elif isinstance(value, expressions.Variable):
-        return Variable(value.name)
+    elif isinstance(value, (int, float, complex, bool, str)):
+        return ConstantPattern(value)
+    elif isinstance(value, (list, tuple, range)):
+        return SequencePattern(value)
+    elif isinstance(value, dict):
+        return DictionaryPattern(value)
+    elif isinstance(value, Variable):
+        return VariablePattern(value.name)
+    elif is_dataclass(value):
+        return DataclassPattern(value)
 
-    raise ValueError(f'Value {repr(value)} cannot be '
-                     f'converted to a pattern.')
+    raise ValueError(f'{repr(value)} cannot be converted to a pattern.')
+
+
+class Match:
+    """Represents the result of a match.
+    Contains a dictionary of matched variables in the case of success."""
+
+    def __init__(self, variables: Optional[Dict] = None):
+        self.variables = variables
+
+    def is_success(self) -> bool:
+        return self.variables is not None
+
+    def is_failure(self) -> bool:
+        return self.variables is None
+
+    @classmethod
+    def success(cls, variables: Optional[Dict] = None) -> 'Match':
+        return Match(variables)
+
+    @classmethod
+    def failure(cls) -> 'Match':
+        return Match()
+
+    @classmethod
+    def merge(cls, a: 'Match', b: 'Match') -> 'Match':
+        """Merges two matching results together."""
+
+        if a.is_failure() or b.is_failure():
+            return Match.failure()
+        else:
+            variables = dict(a.variables)
+
+            for name in b.variables:
+                if name not in variables:
+                    variables[name] = b.variables[name]
+                else:
+                    raise NameError(f"Variable '{name}' has "
+                                    f"already been defined.")
+
+            return Match.success(variables)
 
 
 class Pattern(metaclass=ABCMeta):
     """Represents a pattern to match the input value against."""
 
     @abstractmethod
-    def match(self, value: Any) -> Optional[Dict]:
+    def match(self, value: Any) -> Match:
         """Returns either a dictionary of matched variables
         in case of success or none in case of failure."""
 
 
-class Constant(Pattern):
+class ConstantPattern(Pattern):
     """A pattern that matches a constant value."""
 
     def __init__(self, pattern: Any):
         self.pattern = pattern
 
-    def match(self, value: Any) -> Optional[Dict]:
+    def match(self, value: Any) -> Match:
         if value == self.pattern:
-            return _success()
+            return Match.success()
         else:
-            return _fail()
+            return Match.failure()
 
 
-class Variable(Pattern):
+class VariablePattern(Pattern):
     """A pattern that matches a variable."""
 
     def __init__(self, name: Optional[str]):
         self.name = name
 
-    def match(self, value: Any) -> Optional[Dict]:
+    def match(self, value: Any) -> Match:
         if self.name is not None:
-            return _success({self.name: value})
+            return Match.success({self.name: value})
         else:
-            return _success()
+            return Match.success()
 
 
-class Sequence(Pattern):
+class SequencePattern(Pattern):
     """A pattern that matches sequences (lists, tuples, ranges)."""
 
     def __init__(self, pattern: Union[list, tuple, range]):
         self.pattern = pattern
 
-    def match(self, value: Any) -> Optional[Dict]:
+    def match(self, value: Any) -> Match:
         if not isinstance(value, type(self.pattern)):
-            return _fail()
+            return Match.failure()
 
-        args = {}
-        none = object()
+        success = Match.success()
+        nothing = object()
 
         ps = iter(self.pattern)
         vs = iter(value)
 
         while True:
-            p = next(ps, none)
-            v = next(vs, none)
+            p = next(ps, nothing)
+            v = next(vs, nothing)
 
-            if p is none and v is none:
-                return _success(args)
-            if p is none or v is none:
-                return _fail()
+            if p is nothing and v is nothing:
+                return success
+            if p is nothing or v is nothing:
+                return Match.failure()
 
-            if (x := as_pattern(p).match(v)) is not None:
-                _merge(args, x)
+            if (match := as_pattern(p).match(v)).is_success():
+                success = Match.merge(success, match)
             else:
-                return _fail()
+                return Match.failure()
 
 
-class Dictionary(Pattern):
+class DictionaryPattern(Pattern):
     """A pattern that matches dictionaries."""
 
     def __init__(self, pattern: dict):
         self.pattern = pattern
 
-    def match(self, value: Any) -> Optional[Dict]:
+    def match(self, value: Any) -> Match:
         if not isinstance(value, dict):
-            return _fail()
+            return Match.failure()
 
-        args = {}
+        success = Match.success()
         value = dict(value)
 
         for pkey, pvalue in self.pattern.items():
@@ -112,95 +151,73 @@ class Dictionary(Pattern):
                 x = pkey.match(vkey)
                 y = pvalue.match(vvalue)
 
-                if x is not None and y is not None:
+                if x.is_success() and y.is_success():
                     if found is not None:
                         raise ValueError(f'Pattern ({pkey}: {pvalue}) '
                                          f'matches multiple pairs.')
 
-                    _merge(args, x)
-                    _merge(args, y)
+                    success = Match.merge(success, x)
+                    success = Match.merge(success, y)
 
                     found = vkey
 
             if found is not None:
                 value.pop(found)
             else:
-                return _fail()
+                return Match.failure()
 
         if len(value) > 0:
-            return _fail()
+            return Match.failure()
         else:
-            return _success(args)
+            return success
 
 
-class Dataclass(Pattern):
+class DataclassPattern(Pattern):
     """A pattern that matches dataclasses."""
 
     def __init__(self, pattern):
         self.pattern = pattern
 
-    def match(self, value: Any) -> Optional[Dict]:
+    def match(self, value: Any) -> Match:
         if not isinstance(value, type(self.pattern)):
-            return _fail()
+            return Match.failure()
 
-        args = {}
+        success = Match.success()
 
         for field in fields(value):
             p = getattr(self.pattern, field.name)
             v = getattr(value, field.name)
 
-            if (x := as_pattern(p).match(v)) is not None:
-                _merge(args, x)
+            if (match := as_pattern(p).match(v)).is_success():
+                success = Match.merge(success, match)
             else:
-                return _fail()
+                return Match.failure()
 
-        return _success(args)
+        return success
 
 
-class Type(Pattern):
+class TypePattern(Pattern):
     """A pattern that matches types of input values."""
 
     def __init__(self, pattern, variable):
         self.pattern = pattern
         self.variable = variable
 
-    def match(self, value: Any) -> Optional[Dict]:
+    def match(self, value: Any) -> Match:
         if isinstance(value, self.pattern):
             if self.variable is not None:
-                return _success({self.variable: value})
+                return Match.success({self.variable: value})
             else:
-                return _success()
+                return Match.success()
         else:
-            return _fail()
+            return Match.failure()
 
 
-class Regex(Pattern):
+class RegexPattern(Pattern):
     """A pattern that matches regex groups."""
 
     def __init__(self, pattern):
         self.pattern = pattern
 
-    def match(self, value: Any) -> Optional[Dict]:
+    def match(self, value: Any) -> Match:
         raise NotImplemented
-
-
-def _success(args: Optional[Dict] = None) -> Dict:
-    """Called to indicated a successful match."""
-    return args or {}
-
-
-def _fail() -> None:
-    """Called to indicate a failed match."""
-    return None
-
-
-def _merge(args: Dict, other: Dict):
-    """Merges the second dictionary into the first one. May raise a
-    `NameError` in case if keys of the specified dictionaries intersect."""
-
-    for name in other:
-        if name not in args:
-            args[name] = other[name]
-        else:
-            raise NameError(f"Variable '{name}' has "
-                            f"already been defined.")

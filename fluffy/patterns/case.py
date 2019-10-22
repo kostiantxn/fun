@@ -6,11 +6,11 @@ class Case:
     """Contains a pair of (<pattern>, <expression>)."""
 
     def __init__(self, pattern, expression):
-        self._pattern = as_pattern(pattern)
-        self._expression = as_expression(expression)
+        self.pattern = as_pattern(pattern)
+        self.expression = as_expression(expression)
 
     def __iter__(self):
-        return iter([self._pattern, self._expression])
+        return iter([self.pattern, self.expression])
 
 
 class Create:
