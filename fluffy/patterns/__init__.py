@@ -17,6 +17,6 @@ def apply(func, *args) -> Function:
     return Function(func, *args)
 
 
-def of(cls, variable: Optional[expressions.Variable] = None) -> TypePattern:
+def of(cls, variable: Optional[Variable] = None) -> TypePattern:
     """Returns a `Type` pattern for the specified variable."""
     return TypePattern(cls, variable.name if variable is not None else None)

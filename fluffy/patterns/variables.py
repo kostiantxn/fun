@@ -3,7 +3,7 @@ from typing import List, Union
 from fluffy.patterns.expressions import Variable
 
 
-def variables(name: Union[list, tuple, str]) -> List[Variable]:
+def variables(names: Union[list, tuple, str]) -> List[Variable]:
     """Creates a list of new variables.
 
     Example:
@@ -12,13 +12,13 @@ def variables(name: Union[list, tuple, str]) -> List[Variable]:
           x, y, z = variables(('x', 'y', 'z'))
     """
 
-    if not isinstance(name, (list, tuple, str)):
-        raise TypeError(f'Unsupported type: {type(name)}.')
+    if not isinstance(names, (list, tuple, str)):
+        raise TypeError(f'Unsupported type: {type(names)}.')
 
-    if isinstance(name, str):
-        name = name.split()
+    if isinstance(names, str):
+        names = names.split()
 
-    return list(map(Variable, filter(None, name)))
+    return list(map(Variable, filter(None, names)))
 
 
 x: Variable = Variable('x')

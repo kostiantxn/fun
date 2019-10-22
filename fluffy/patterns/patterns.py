@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Any, Optional, Dict, Union
 from dataclasses import is_dataclass, fields
 
-from fluffy.patterns import Variable
+from fluffy.patterns.expressions import Variable
 
 
 def as_pattern(value: Any) -> 'Pattern':
