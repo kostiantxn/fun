@@ -46,14 +46,16 @@ from fluffy.patterns import match as case, case as of
 ```
 
 ### Matching basic data types
-You can match values of built-in types, like `int`, `float`, `complex`, `bool` and `str`, as well as `None`:
+You can match basic built-in data types including `int`, `float`, `complex`, `bool` and `str`, as well as `None`:
 ``` python
 value = ...
 
-match(value, case | 42   > '(natural) answer to the ultimate question',
-             case | 42j  > '(complex) answer to the ultimate question',
-             case | 42.0 > '(real) answer to the ultimate question',
-             ...)
+match(value, case | 42    > '(natural) answer to the ultimate question',
+             case | 42j   > '(complex) answer to the ultimate question',
+             case | 9.75  > '9¾? think you're being funny do ya?',
+             case | '451' > 'fahrenheit',
+             case | True  > not False,
+             case | None  > 123.4)
 ```
 
 ### Matching standard collections
