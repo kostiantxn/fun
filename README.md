@@ -8,8 +8,9 @@ A package for functional programming in Python.
     1. [Design](#design)
     1. [Matching basic data types](#matching-basic-data-types): `int`, `float`, `complex`, `bool`, `str`
     1. [Matching standard collections](#matching-standard-collections): `list`, `tuple`, `dict`
-    1. [Mismatching](#mismatching)
     1. [Variables and expressions](#variables-and-expressions)
+    1. [Mismatching](#mismatching)
+    1. [Raising errors](#raising-errors)
 1. [Monads](#monads)
 
 ## Pattern matching
@@ -69,6 +70,40 @@ band = ('Armstrong', 'Dirnt', 'Cool')
 name = match(band, case | ('Armstrong', 'Dirnt', 'Cool') > 'Green Day')
 ```
 
+### Variables and expressions
+You can use variables to fetch values and use them later:
+
+``` python
+from fluffy.patterns import match, case, x
+
+person = ('Richard', 'Feynman')
+
+surname = match(person, case | ('Albert',  x) > x,
+                        case | ('Richard', x) > x)
+```
+
+There are plenty of predefined variables: `a`, `b`, `c`, `f`, `g`, `h`, `m`, `n`, `k`, `x`, `y`, `z`.
+And special ones: `_` and its alias `otherwise`.
+
+You can define your own variables if you need to:
+``` python
+from fluffy.patterns import Variable
+
+name = Variable('name')
+
+match(['Richard', 'Feynman'], case | [name, 'Einstein'] > name + ' Einstein',
+                              case | [name, 'Feynman']  > name + ' Feynman')
+```
+
+You can also define multiple variables at once:
+``` python
+from fluffy.patterns import variables
+
+apple, orange = variables('apple orange')
+
+...
+```
+
 ### Mismatching
 Be careful! You may get an error in a case when there are no matching patterns:
 ``` python
@@ -85,16 +120,12 @@ match(0, case | +1 > 'positive',
          case |  _ > 'neutral')
 ```
 
-### Variables and expressions
-You can use variables to fetch values and use them later:
-
+### Raising errors
+You can raise an error of any type:
 ``` python
-from fluffy.patterns import match, case, x
+from fluffy.patterns import match, case, raises
 
-person = ('Richard', 'Feynman')
-
-surname = match(person, case | ('Albert',  x) > x,
-                        case | ('Richard', x) > x)
+match('x', case | 'x' > raises(ValueError(...)))
 ```
 
 ...
