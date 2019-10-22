@@ -11,7 +11,7 @@ def as_pattern(value: Any) -> 'Pattern':
     if isinstance(value, Pattern):
         return value
     elif isinstance(value, (int, float, complex, bool, str)):
-        return ConstantPattern(value)
+        return FixedPattern(value)
     elif isinstance(value, (list, tuple, range)):
         return SequencePattern(value)
     elif isinstance(value, dict):
@@ -65,17 +65,17 @@ class Match:
 
 
 class Pattern(metaclass=ABCMeta):
-    """Represents a pattern to match the input value against."""
+    """Represents a pattern to match the input value."""
 
     @abstractmethod
     def match(self, value: Any) -> Match:
-        """Checks whether the specified value matches the pattern
+        """Checks whether the pattern matches the specified value
         and returns an instance of `Match` that represents either
         a success with matched variables or a failure."""
 
 
-class ConstantPattern(Pattern):
-    """A pattern that matches constant values."""
+class FixedPattern(Pattern):
+    """A pattern that matches a fixed value."""
 
     def __init__(self, pattern: Any):
         self.pattern = pattern
@@ -88,7 +88,7 @@ class ConstantPattern(Pattern):
 
 
 class VariablePattern(Pattern):
-    """A pattern that matches variables."""
+    """A pattern that matches a variable."""
 
     def __init__(self, name: Optional[str]):
         self.name = name
@@ -101,7 +101,7 @@ class VariablePattern(Pattern):
 
 
 class SequencePattern(Pattern):
-    """A pattern that matches sequences (lists, tuples, ranges)."""
+    """A pattern that matches a sequence (lists, tuples, ranges)."""
 
     def __init__(self, pattern: Union[list, tuple, range]):
         self.pattern = pattern
@@ -125,14 +125,16 @@ class SequencePattern(Pattern):
             if p is nothing or v is nothing:
                 return Match.failure()
 
-            if (match := as_pattern(p).match(v)).is_success():
+            match = as_pattern(p).match(v)
+
+            if match.is_success():
                 success = Match.merge(success, match)
             else:
                 return Match.failure()
 
 
 class DictionaryPattern(Pattern):
-    """A pattern that matches dictionaries."""
+    """A pattern that matches a dictionary."""
 
     def __init__(self, pattern: dict):
         self.pattern = pattern
@@ -174,7 +176,7 @@ class DictionaryPattern(Pattern):
 
 
 class DataclassPattern(Pattern):
-    """A pattern that matches dataclasses."""
+    """A pattern that matches a dataclass."""
 
     def __init__(self, pattern):
         self.pattern = pattern
@@ -189,7 +191,9 @@ class DataclassPattern(Pattern):
             p = getattr(self.pattern, field.name)
             v = getattr(value, field.name)
 
-            if (match := as_pattern(p).match(v)).is_success():
+            match = as_pattern(p).match(v)
+
+            if match.is_success():
                 success = Match.merge(success, match)
             else:
                 return Match.failure()
@@ -198,7 +202,7 @@ class DataclassPattern(Pattern):
 
 
 class TypePattern(Pattern):
-    """A pattern that matches types."""
+    """A pattern that matches the values of the specified type."""
 
     def __init__(self, pattern, variable):
         self.pattern = pattern
@@ -215,7 +219,7 @@ class TypePattern(Pattern):
 
 
 class RegexPattern(Pattern):
-    """A pattern that matches regular expressions."""
+    """A pattern that matches a regular expression."""
 
     def __init__(self, pattern):
         self.pattern = pattern

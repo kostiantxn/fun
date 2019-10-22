@@ -5,14 +5,17 @@ from fluffy.patterns.errors import MismatchError
 
 
 def match(value: Any, *cases: Case):
-    """Tries to match the input data to one of the specified cases.
+    """Checks whether any pattern matches the specified value and evaluates
+     the corresponding expression in such case. Otherwise raises
+     `MismatchError`.
 
     :param value: input data to match
     :param cases: list of cases to match the input against
     """
 
     for pattern, expression in cases:
-        if (args := pattern.match(value)) is not None:
-            return expression.eval(args)
+        result = pattern.match(value)
+        if result.is_success():
+            return expression.evaluate(result.variables)
 
     raise MismatchError(f"Could not match {repr(value)}.")

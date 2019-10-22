@@ -7,9 +7,9 @@ from fluffy.patterns.variables import *
 from fluffy.patterns.variables import _
 
 
-def raises(error) -> Raises:
-    """Returns an instance of `Raises` with the specified `error`."""
-    return Raises(error)
+def error(value):
+    """Returns an instance of `Error` with the specified `value`."""
+    return Error(value)
 
 
 def apply(func, *args) -> Function:

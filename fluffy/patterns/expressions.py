@@ -1,27 +1,29 @@
 import operator
 from abc import ABCMeta, abstractmethod
-from typing import Any
+from typing import Any, Dict
+
+from fluffy.patterns.errors import EvaluationError
 
 
 def as_expression(value: Any) -> 'Expression':
-    """Wraps the `value` into an `Expression` object."""
+    """Converts the specified value to an `Expression` object."""
 
     if isinstance(value, Expression):
         return value
     elif isinstance(value, (int, float, complex, bool, str)):
         return Constant(value)
 
-    raise ValueError(f'Value {repr(value)} cannot be '
-                     f'converted to an expression.')
+    # TODO: Add collections and other types.
+
+    raise ValueError(f'{repr(value)} cannot be converted to an expression.')
 
 
 class Expression(metaclass=ABCMeta):
     """Represents an expression that can be evaluated."""
 
     @abstractmethod
-    def eval(self, args):
-        """Evaluates the expression depending
-        on the provided variables."""
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
+        """Evaluates the expression depending on the provided variables."""
 
     def __pos__(self) -> 'Expression':
         return Function(operator.pos, self)
@@ -81,42 +83,45 @@ class Variable(Expression):
     def __eq__(self, other):
         return isinstance(other, Variable) and self.name == other.name
 
-    def eval(self, args):
-        if self.name not in args:
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
+        if self.name not in variables:
             raise NameError(f"Variable '{self.name}' is not defined.")
 
-        return args[self.name]
+        return variables[self.name]
 
 
 class Constant(Expression):
-    """An expression of a constant value."""
+    """An expression that represents a constant value."""
 
     def __init__(self, value):
         self._value = value
 
-    def eval(self, args):
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
         return self._value
 
 
 class Function(Expression):
-    """An expression that applies a function to argument expressions."""
+    """An expression that applies a function to the argument expressions."""
 
     def __init__(self, f, *x):
         self._f = f
         self._x = list(map(as_expression, x))
 
-    def eval(self, args):
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
         f = self._f
-        x = [x.eval(args) for x in self._x]
+        x = [x.evaluate(variables) for x in self._x]
 
         return f(*x)
 
 
-class Raises(Expression):
+class Error(Expression):
     """An expression that raises an error."""
 
-    def __init__(self, error):
-        self._error = error
+    def __init__(self, value):
+        self._value = value
 
-    def eval(self, args):
-        raise self._error
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
+        if isinstance(self._value, Exception):
+            raise self._value
+        else:
+            raise EvaluationError(self._value)

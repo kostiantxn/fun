@@ -123,9 +123,9 @@ match(0, case | +1 > 'positive',
 ### Raising errors
 You can raise an error of any type:
 ``` python
-from fluffy.patterns import match, case, raises
+from fluffy.patterns import match, case, error
 
-match('x', case | 'x' > raises(ValueError(...)))
+match('x', case | 'x' > error('message'))
 ```
 
 ...
