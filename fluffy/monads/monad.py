@@ -1,135 +1,102 @@
 import ast
 import inspect
-from copy import deepcopy
 from functools import wraps
+from importlib import import_module
 
 
 def monad(cls):
-    """A decorator that converts the decorated function to a monadic one."""
+    """A decorator that converts the decorated function to a monad."""
 
     def decorator(func):
-        tree = ast.parse(inspect.getsource(func))
-        tree.body[0].decorator_list = []
+        tree = build(func, cls)
+        code = compile(tree, '<source>', 'exec')
 
-        validate(tree)
+        globals_ = vars(import_module(func.__module__))
+        locals_ = {}
+
+        exec(code, globals_, locals_)
 
         @wraps(func)
         def decorated(*args, **kwargs):
-            return Computation(cls, tree, func(*args, **kwargs)).reduce()
+            return locals_[func.__name__](*args, **kwargs)
 
         return decorated
 
     return decorator
 
 
-def appropriate(statement):
-    """Checks whether the statement is appropriate for a monad."""
+def build(func, cls):
+    """Constructs a tree of a monadic lambda from the specified function."""
 
-    if isinstance(statement, ast.Assign):
-        return True
+    def arg(name):
+        return ast.arg(arg=name, annotation=None, type_comment=None)
 
-    if isinstance(statement, ast.Expr):
-        if isinstance(statement.value, ast.Str):
-            return True  # Documentation.
-        if isinstance(statement.value, ast.Yield):
-            return True
-
-    if isinstance(statement, ast.Return):
-        return True
-
-    return False
-
-
-def validate(tree):
-    """Checks the syntax tree of a function to ensure
-    that it is a appropriate for a monadic function."""
-
-    func = tree.body[0]
-    code = func.body
-
-    for statement in code:
-        if not appropriate(statement):
-            raise SyntaxError(f'Inappropriate statement: {statement}.')
-
-
-def copy(tree, gen, offset):
-    """Compiles a function from the tree and the generator
-    with the specified offset."""
-
-    tree = deepcopy(tree)
-    func = tree.body[0]
-    name = func.name
-
-    if offset > 0:
-        # Remove already executed rows.
-        rows = func.body[offset - 1:]
-
-        # Replace the following code:
-        #       x = yield y()
-        # with this:
-        #       x = yield
-        # to prevent multiple evaluations of `y` but to
-        # leave the ability to send a value to `x`.
-
-        if isinstance(rows[0], ast.Assign) and \
-           isinstance(rows[0].value, ast.Yield):
-            rows[0].value.value = None
+    def args(names):
+        if isinstance(names, ast.arguments):
+            return names
         else:
-            raise ValueError(f'Inappropriate statement: {rows[0]}.')
+            return ast.arguments(posonlyargs=[],
+                                 args=[arg(name) for name in names],
+                                 vararg=None,
+                                 kwonlyargs=[],
+                                 kw_defaults=[],
+                                 kwarg=None,
+                                 defaults=[])
 
-        func.body = rows
+    def attr(name):
+        return ast.Attribute(value=ast.Name(id=cls.__name__, ctx=ast.Load()),
+                             attr=name,
+                             ctx=ast.Load())
 
-    source = compile(tree, '<source>', 'exec')
+    def call(func_, args_):
+        return ast.Call(func=func_, args=args_, keywords=[])
 
-    scope = {}
-    scope.update(gen.gi_frame.f_globals)
-    scope.update(gen.gi_frame.f_locals)
+    def lambda_(args_, body_):
+        return ast.Lambda(args=args(args_), body=body_)
 
-    # The compiled function will be stored here.
-    def_ = {}
+    def assign(name, value):
+        return ast.Assign(targets=[ast.Name(id=name, ctx=ast.Store())],
+                          value=value,
+                          type_comment=None)
 
-    # Compile the truncated source code.
-    exec(source, scope, def_)
+    def module(*statements):
+        return ast.Module(body=list(statements), type_ignores=[])
 
-    return def_[name]
+    tree = ast.parse(inspect.getsource(func))
 
+    unit = attr('unit')
+    bind = attr('bind')
 
-class Computation:
+    def monad_(i=0):
+        """Converts the code from the i-th line to a monad."""
 
-    def __init__(self, type_, tree, gen, offset=0):
-        self._type = type_
-        self._tree = tree
-        self._func = copy(tree, gen, offset)
-        self._offset = offset
+        line = tree.body[0].body[i]
 
-    def __call__(self, x):
-        f = self._func()
+        if isinstance(line, ast.Return):
+            return call(unit, [line.value])
 
-        # The first invocation does not do anything,
-        # it just allows to send the first value.
-        f.send(None)
+        if isinstance(line, ast.Assign):
+            if not isinstance(line.value, ast.Yield):
+                raise SyntaxError(f'Only `yield` expressions are allowed.')
+            if len(line.targets) != 1:
+                raise SyntaxError(f'Only 1 variable can be assigned.')
 
-        try:
-            m = f.send(x)
-            g = Computation(self._type,
-                            self._tree,
-                            f,
-                            self._offset + 1)
+            n = line.targets[0].id  # The name of the variable.
+            m = line.value.value    # The value after `yield`.
+            g = lambda_([n], monad_(i + 1))
 
-            return self._type.bind(m, g)
+            return call(bind, [m, g])
 
-        except StopIteration as result:
-            if result.value is not None:
-                return self._type.unit(result.value)
-            else:
-                raise NotImplemented
+        if isinstance(line, ast.Expr):
+            # Skip documentation.
+            if isinstance(line.value, ast.Constant) and \
+               isinstance(line.value.value, str):
+                return monad_(i + 1)
 
-    def reduce(self):
-        f = self._func()
-        m = f.send(None)
-        g = Computation(self._type,
-                        self._tree,
-                        f,
-                        offset=1)
+        raise SyntaxError(f'Invalid statement: {line}.')
 
-        return self._type.bind(m, g)
+    result = lambda_(tree.body[0].args, monad_())
+    result = assign(func.__name__, result)
+    result = ast.fix_missing_locations(module(result))
+
+    return result
