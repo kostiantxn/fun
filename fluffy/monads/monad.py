@@ -76,28 +76,41 @@ def build(func, cls):
             return call(unit, [line.value])
 
         if isinstance(line, ast.Assign):
-            if not isinstance(line.value, ast.Yield):
-                raise SyntaxError(f'Only `yield` expressions are allowed.')
             if len(line.targets) != 1:
                 raise SyntaxError(f'Only 1 variable can be assigned.')
 
-            n = line.targets[0].id  # The name of the variable.
-            m = line.value.value    # The value after `yield`.
-            g = lambda_([n], monad_(i + 1))
+            # Expressions like `x = yield y`.
+            # The same as `x <- y` in Haskell.
+            if isinstance(line.value, ast.Yield):
+                n = line.targets[0].id  # The name of the variable.
+                m = line.value.value    # The value after `yield`.
+                g = lambda_([n], monad_(i + 1))
 
-            return call(bind, [m, g])
+                return call(bind, [m, g])
+
+            # Expressions like `x = y`.
+            # The same as `let x = y` in Haskell.
+            else:
+                n = line.targets[0].id  # The name of the variable.
+                x = line.value          # The value being assigned to.
+                f = lambda_([n], monad_(i + 1))
+
+                return call(f, [x])
 
         if isinstance(line, ast.Expr):
-            # Skip documentation.
-            if isinstance(line.value, ast.Constant) and \
-               isinstance(line.value.value, str):
-                return monad_(i + 1)
 
+            # Expressions like `yield y`.
+            # The same as `y` in Haskell.
             if isinstance(line.value, ast.Yield):
                 m = line.value.value  # The value after `yield`.
                 g = lambda_(['_'], monad_(i + 1))
 
                 return call(bind, [m, g])
+
+            # Documentation.
+            if isinstance(line.value, ast.Constant) and \
+               isinstance(line.value.value, str):
+                return monad_(i + 1)
 
         raise SyntaxError(f'Invalid statement: {line}.')
 
