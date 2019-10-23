@@ -93,6 +93,12 @@ def build(func, cls):
                isinstance(line.value.value, str):
                 return monad_(i + 1)
 
+            if isinstance(line.value, ast.Yield):
+                m = line.value.value  # The value after `yield`.
+                g = lambda_(['_'], monad_(i + 1))
+
+                return call(bind, [m, g])
+
         raise SyntaxError(f'Invalid statement: {line}.')
 
     result = lambda_(tree.body[0].args, monad_())
