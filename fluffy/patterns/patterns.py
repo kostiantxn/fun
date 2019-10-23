@@ -6,7 +6,7 @@ from fluffy.patterns.expressions import Variable
 
 
 def as_pattern(value: Any) -> 'Pattern':
-    """Converts `value` into a `Pattern` object."""
+    """Converts the specified value to a `Pattern` object."""
 
     if isinstance(value, Pattern):
         return value
