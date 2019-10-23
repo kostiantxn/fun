@@ -133,4 +133,17 @@ match('x', case | 'x' > error('message'))
 ...
 
 ## Monads
-...
+You can use `fluffy.monads` to write monadic functions.
+Here is an example:
+``` python
+from fluffy.monads import monad, List
+
+@monad(List)
+def example(n):
+    x = yield List[1, 2, 3]
+    y = yield List[1, 2, 3]
+    
+    return (x + y) * n
+
+print(example(5))  # Prints `List[5, 10, 15, 10, 20, 30, 15, 30, 45]`.
+```
