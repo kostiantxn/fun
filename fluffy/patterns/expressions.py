@@ -83,6 +83,9 @@ class Variable(Expression):
     def __eq__(self, other):
         return isinstance(other, Variable) and self.name == other.name
 
+    def __repr__(self):
+        return f'Variable(name={repr(self.name)})'
+
     def evaluate(self, variables: Dict[str, Any]) -> Any:
         if self.name not in variables:
             raise NameError(f"Variable '{self.name}' is not defined.")
