@@ -2,15 +2,15 @@
 
 A package for functional programming in Python.
 
-## Content
+### Contents
 
 1. [Pattern matching](#pattern-matching)
-    1. [Design](#design)
-    1. [Matching basic data types](#matching-basic-data-types): `int`, `float`, `complex`, `bool`, `str`
-    1. [Matching standard collections](#matching-standard-collections): `list`, `tuple`, `dict`
-    1. [Variables and expressions](#variables-and-expressions)
-    1. [Mismatching](#mismatching)
-    1. [Raising errors](#raising-errors)
+    * [Match basic data types](#match-basic-data-types): `int`, `float`, `complex`, `bool`, `str`
+    * [Match standard collections](#match-standard-collections): `list`, `tuple`, `dict`
+    * [Variables and expressions](#variables-and-expressions)
+    * [Mismatch](#mismatch)
+    * [Raise errors](#raise-errors)
+    * [How it works](#how-it-works)
 1. [Monads](#monads)
 
 ## Pattern matching
@@ -28,7 +28,6 @@ greeting = match(language, case | 'english' > 'hello world!',
 print(greeting)  # Prints 'hallo welt!'.
 ```
 
-### Design
 The main syntax for `match` has the following form:
 ``` python
 match(value, case | pattern[0] > expression[0],
@@ -37,15 +36,7 @@ match(value, case | pattern[0] > expression[0],
              ...)
 ```
 
-The statement `case | pattern > expression` is evaluated as `((case | pattern) > expression)` due to the priority of operators `|` and `>`.
-It returns `Case(pattern, expression)` and is used only for stylistic purposes.
-
-You can also simulate Haskell's syntax for pattern matching like this:
-``` python
-from fluffy.patterns import match as case, case as of
-```
-
-### Matching basic data types
+### Match basic data types
 You can match basic built-in data types including `int`, `float`, `complex`, `bool` and `str`, as well as `None`:
 ``` python
 value = ...
@@ -58,7 +49,7 @@ match(value, case | 42    > '(natural) answer to the ultimate question',
              case | None  > 123.4)
 ```
 
-### Matching standard collections
+### Match standard collections
 You can match lists and tuples:
 ``` python
 from fluffy.patterns import match, case
@@ -106,7 +97,7 @@ apple, orange = variables('apple orange')
 ...
 ```
 
-### Mismatching
+### Mismatch
 Be careful! You may get an error in a case when there are no matching patterns:
 ``` python
 # Raises a `MismatchError`.
@@ -122,13 +113,15 @@ match(0, case | +1 > 'positive',
          case |  _ > 'neutral')
 ```
 
-### Raising errors
+### Raise errors
 You can raise an error of any type:
 ``` python
 from fluffy.patterns import match, case, error
 
 match('x', case | 'x' > error('message'))
 ```
+
+### How it works
 
 ...
 
