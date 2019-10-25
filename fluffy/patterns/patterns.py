@@ -1,5 +1,6 @@
+import re
 from abc import ABCMeta, abstractmethod
-from typing import Any, Optional, Dict, Union
+from typing import Any, Optional, Dict, Union, Type
 from dataclasses import is_dataclass, fields
 
 from fluffy.patterns.expressions import Variable
@@ -132,8 +133,8 @@ class Pattern(metaclass=ABCMeta):
 class FixedPattern(Pattern):
     """A pattern that matches a fixed value.
 
-    Matches only values that are equal to the specified fixed value.
-    Does not fetch any variables.
+    Matches only values that are equal to the specified fixed value. Does not
+    fetch any variables.
 
     Attributes:
         pattern: A fixed value to match against.
@@ -142,11 +143,7 @@ class FixedPattern(Pattern):
         >>> pattern = FixedPattern(1)
         >>> pattern.match(1).is_success()
         True
-        >>> pattern = FixedPattern('x')
         >>> pattern.match('x').is_success()
-        True
-        >>> pattern = FixedPattern('x')
-        >>> pattern.match(1).is_success()
         False
     """
 
@@ -165,8 +162,8 @@ class FixedPattern(Pattern):
 class VariablePattern(Pattern):
     """A pattern that matches a variable.
 
-    Matches any value. Fetches that value and associates it
-    with the name of the variable.
+    Matches any value. Fetches that value and associates it with the name of
+    the variable.
 
     Attributes:
         name (str): The name of the variable to associate the value with.
@@ -183,7 +180,7 @@ class VariablePattern(Pattern):
         self.name = name
 
     def match(self, value: Any) -> Match:
-        """Associates the value with the specified name."""
+        """Matches any value and associates it with the specified name."""
 
         if self.name is not None:
             return Match.success({self.name: value})
@@ -196,8 +193,8 @@ class SequencePattern(Pattern):
 
     Matches input values that have the same type and length as the specified
     sequence, and if every pattern at the i-th position of the specified
-    sequence matches the item at the i-th position of the input value.
-    Merges the results of those matches.
+    sequence matches the item at the i-th position of the input value. Merges
+    the results of those matches.
 
     Attributes:
         pattern: A sequence to match against.
@@ -206,16 +203,8 @@ class SequencePattern(Pattern):
         >>> pattern = SequencePattern([1, 2, 3])
         >>> pattern.match([1, 2, 3]).is_success()
         True
-        >>> pattern = SequencePattern([1, 2, 3])
         >>> pattern.match([1, 2, 0]).is_success()
         False
-        >>> x, y    = VariablePattern('x'), VariablePattern('y')
-        >>> pattern = SequencePattern([1, x, y])
-        >>> match   = pattern.match([1, 2, 3])
-        >>> match.is_success()
-        True
-        >>> match.variables
-        {'x': 2, 'y': 3}
     """
 
     def __init__(self, pattern: Union[list, tuple, range]):
@@ -251,12 +240,36 @@ class SequencePattern(Pattern):
 
 
 class DictionaryPattern(Pattern):
-    """A pattern that matches a dictionary."""
+    """A pattern that matches a dictionary.
+
+    For each key-value pair in the input dictionary checks whether there exists
+    one and only one key-value pair in the pattern dictionary that matches the
+    first pair. Merges the results of those matches.
+
+    Attributes:
+        pattern: A dictionary pattern to match values against.
+
+    Examples:
+        >>> pattern = DictionaryPattern({'a': 'b'})
+        >>> pattern.match({'a': 'b'}).is_success()
+        True
+        >>> pattern.match({'a': 'c'}).is_success()
+        False
+        >>> pattern.match({'a': 'b', 'c': 'd'}).is_success()
+        False
+    """
 
     def __init__(self, pattern: dict):
         self.pattern = pattern
 
     def match(self, value: Any) -> Match:
+        """Checks whether the specified dictionary matches the input value.
+
+        Raises:
+            ValueError: Raised when a single pattern pair matches more than
+                one input pairs.
+        """
+
         if not isinstance(value, dict):
             return Match.failure()
 
@@ -293,12 +306,36 @@ class DictionaryPattern(Pattern):
 
 
 class DataclassPattern(Pattern):
-    """A pattern that matches a dataclass."""
+    """A pattern that matches a dataclass.
+
+    Matches only values that have the same type as the pattern, and every field
+    of the pattern matches the same fields of the input value. Merges the
+    results of those matches.
+
+    Attributes:
+        pattern: An instance of some dataclass to match values against.
+
+    Examples:
+        >>> from dataclasses import dataclass
+
+        >>> @dataclass
+        ... class Vector:
+        ...     x: int
+        ...     y: int
+
+        >>> pattern = DataclassPattern(Vector(1, 2))
+        >>> pattern.match(Vector(1, 2)).is_success()
+        True
+        >>> pattern.match(Vector(2, 3)).is_success()
+        False
+    """
 
     def __init__(self, pattern):
         self.pattern = pattern
 
     def match(self, value: Any) -> Match:
+        """Checks whether the specified pattern matches the input value."""
+
         if not isinstance(value, type(self.pattern)):
             return Match.failure()
 
@@ -319,13 +356,24 @@ class DataclassPattern(Pattern):
 
 
 class TypePattern(Pattern):
-    """A pattern that matches the values of the specified type."""
+    """A pattern that matches values of the specified type.
 
-    def __init__(self, pattern, variable):
+    Matches only values that have the same type as the specified one. Fetches
+    the matched value in a case if the name of a variable was specified.
+
+    Attributes:
+        pattern (type): A type to match values against.
+        variable (str, optional): The name of the variable to associate the
+            value with.
+    """
+
+    def __init__(self, pattern: Type, variable: Optional[str]):
         self.pattern = pattern
         self.variable = variable
 
     def match(self, value: Any) -> Match:
+        """Checks whether the value has the same type as the specified one."""
+
         if isinstance(value, self.pattern):
             if self.variable is not None:
                 return Match.success({self.variable: value})
@@ -338,7 +386,10 @@ class TypePattern(Pattern):
 class RegexPattern(Pattern):
     """A pattern that matches a regular expression."""
 
-    def __init__(self, pattern):
+    def __init__(self, pattern: Union[str, re.Pattern]):
+        if isinstance(pattern, str):
+            pattern = re.compile(pattern)
+
         self.pattern = pattern
 
     def match(self, value: Any) -> Match:
