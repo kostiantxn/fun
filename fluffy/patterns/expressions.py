@@ -1,21 +1,42 @@
 import operator
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from fluffy.patterns.errors import EvaluationError
 
 
 def as_expression(value: Any) -> 'Expression':
-    """Converts the specified value to an `Expression` object."""
+    """Creates an instance of `Expression` from the specified value.
+
+    Args:
+        value: A value to create an instance of `Expression` from.
+
+    Returns:
+        An instance of `Expression` that was constructed depending on
+        the specified value.
+
+    Examples:
+        >>> as_expression(42)
+        Constant(value=42)
+
+        >>> as_expression([451, 1984])
+        Sequence(value=[451, 1984])
+
+    Raises:
+        TypeError: Raised when the type of the specified value is not
+            supported and an instance of `Expression` cannot be created.
+    """
 
     if isinstance(value, Expression):
         return value
     elif isinstance(value, (int, float, complex, bool, str)):
         return Constant(value)
+    elif isinstance(value, (list, tuple)):
+        return Sequence(value)
+    elif isinstance(value, dict):
+        return Dictionary(value)
 
-    # TODO: Add collections and other types.
-
-    raise ValueError(f'{repr(value)} cannot be converted to an expression.')
+    raise ValueError(f'{value} cannot be converted to an expression.')
 
 
 class Expression(metaclass=ABCMeta):
@@ -23,7 +44,15 @@ class Expression(metaclass=ABCMeta):
 
     @abstractmethod
     def evaluate(self, variables: Dict[str, Any]) -> Any:
-        """Evaluates the expression depending on the provided variables."""
+        """Evaluates the expression depending on the provided variables.
+
+        Args:
+            variables: A dictionary that maps the names of the variables to
+                the values of those variables.
+
+        Returns:
+            The evaluated value.
+        """
 
     def __pos__(self) -> 'Expression':
         return Function(operator.pos, self)
@@ -71,6 +100,20 @@ class Expression(metaclass=ABCMeta):
         return Function(operator.pow, other, self)
 
 
+class Function(Expression):
+    """An expression that applies a function to the argument expressions."""
+
+    def __init__(self, f, *x):
+        self._f = f
+        self._x = list(map(as_expression, x))
+
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
+        f = self._f
+        x = [x.evaluate(variables) for x in self._x]
+
+        return f(*x)
+
+
 class Variable(Expression):
     """An expression that consists of a single variable."""
 
@@ -103,18 +146,24 @@ class Constant(Expression):
         return self._value
 
 
-class Function(Expression):
-    """An expression that applies a function to the argument expressions."""
+class Sequence(Expression):
+    """..."""
 
-    def __init__(self, f, *x):
-        self._f = f
-        self._x = list(map(as_expression, x))
+    def __init__(self, value: Union[list, tuple]):
+        self._value = value
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
-        f = self._f
-        x = [x.evaluate(variables) for x in self._x]
+        raise NotImplemented
 
-        return f(*x)
+
+class Dictionary(Expression):
+    """..."""
+
+    def __init__(self, value: dict):
+        self._value = value
+
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
+        raise NotImplemented
 
 
 class Error(Expression):

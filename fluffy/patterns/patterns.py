@@ -7,23 +7,24 @@ from fluffy.patterns.expressions import Variable
 
 
 def as_pattern(value: Any) -> 'Pattern':
-    """Creates an instance of `Pattern` from the specified `value`.
+    """Creates an instance of `Pattern` from the specified value.
 
     Args:
         value: A value to create an instance of `Pattern` from.
 
     Returns:
         An instance of `Pattern` that was constructed depending on
-        the specified `value`. For example, the following statement:
+        the specified value.
 
-            as_pattern(1), as_pattern([1, 2])
+    Examples:
+        >>> as_pattern(42)
+        FixedPattern(pattern=42)
 
-        Will return:
-
-            FixedPattern(1), SequencePattern([1, 2])
+        >>> as_pattern([451, 1984])
+        SequencePattern(pattern=[451, 1984])
 
     Raises:
-        TypeError: Raised when the type of the specified `value` is not
+        TypeError: Raised when the type of the specified value is not
             supported and an instance of `Pattern` cannot be created.
     """
 
@@ -150,6 +151,9 @@ class FixedPattern(Pattern):
     def __init__(self, pattern: Any):
         self.pattern = pattern
 
+    def __repr__(self):
+        return f'FixedPattern(pattern={repr(self.pattern)})'
+
     def match(self, value: Any) -> Match:
         """Checks whether the input value is equal to the fixed value."""
 
@@ -178,6 +182,9 @@ class VariablePattern(Pattern):
 
     def __init__(self, name: Optional[str]):
         self.name = name
+
+    def __repr__(self):
+        return f'VariablePattern(name={repr(self.name)})'
 
     def match(self, value: Any) -> Match:
         """Matches any value and associates it with the specified name."""
@@ -209,6 +216,9 @@ class SequencePattern(Pattern):
 
     def __init__(self, pattern: Union[list, tuple, range]):
         self.pattern = pattern
+
+    def __repr__(self):
+        return f'SequencePattern(pattern={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the specified sequence matches the input value."""
@@ -261,6 +271,9 @@ class DictionaryPattern(Pattern):
 
     def __init__(self, pattern: dict):
         self.pattern = pattern
+
+    def __repr__(self):
+        return f'DictionaryPattern(pattern={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the specified dictionary matches the input value.
@@ -333,6 +346,9 @@ class DataclassPattern(Pattern):
     def __init__(self, pattern):
         self.pattern = pattern
 
+    def __repr__(self):
+        return f'DataclassPattern(pattern={repr(self.pattern)})'
+
     def match(self, value: Any) -> Match:
         """Checks whether the specified pattern matches the input value."""
 
@@ -371,6 +387,12 @@ class TypePattern(Pattern):
         self.pattern = pattern
         self.variable = variable
 
+    def __repr__(self):
+        return f'TypePattern(' \
+                   f'pattern={repr(self.pattern)}, ' \
+                   f'variable={repr(self.variable)}' \
+               f')'
+
     def match(self, value: Any) -> Match:
         """Checks whether the value has the same type as the specified one."""
 
@@ -391,6 +413,9 @@ class RegexPattern(Pattern):
             pattern = re.compile(pattern)
 
         self.pattern = pattern
+
+    def __repr__(self):
+        return f'RegexPattern(pattern={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         raise NotImplemented
