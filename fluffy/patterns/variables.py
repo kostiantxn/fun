@@ -15,6 +15,7 @@ def variables(names: Union[list, tuple, str]) -> List[Variable]:
     Examples:
         >>> variables('a b c')
         [Variable(name='a'), Variable(name='b'), Variable(name='c')]
+
         >>> variables(['x', 'y', 'z'])
         [Variable(name='x'), Variable(name='y'), Variable(name='z')]
     """

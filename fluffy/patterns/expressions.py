@@ -1,6 +1,6 @@
 import operator
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Callable
 
 from fluffy.patterns.errors import EvaluationError
 
@@ -40,7 +40,14 @@ def as_expression(value: Any) -> 'Expression':
 
 
 class Expression(metaclass=ABCMeta):
-    """Represents an expression that can be evaluated."""
+    """An expression that can be evaluated.
+
+    Represents an expression that can be evaluated depending on a dictionary
+    of variables.
+
+    Defines operators to add, subtract, multiply, divide, compare expressions
+    (the list of operators is not exhaustive).
+    """
 
     @abstractmethod
     def evaluate(self, variables: Dict[str, Any]) -> Any:
@@ -130,25 +137,52 @@ class Expression(metaclass=ABCMeta):
         return Function(operator.ge, self, other)
 
 
-class Function(Expression):
-    """An expression that applies a function to the argument expressions."""
+class Constant(Expression):
+    """An expression representing a constant value.
 
-    def __init__(self, f, *x):
-        self._f = f
-        self._x = list(map(as_expression, x))
+    Example:
+        >>> expr = Constant(42)
+        >>> expr.evaluate({})
+        42
+    """
+
+    def __init__(self, value):
+        """Initialises the object.
+
+        Initialises the object with the value that will be returned during the
+        evaluation of the expression.
+
+        Args:
+            value: Any object that will be returned during the evaluation.
+        """
+
+        self._value = value
+
+    def __repr__(self):
+        return f'Constant(value={repr(self._value)})'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
-        f = self._f
-        x = [x.evaluate(variables) for x in self._x]
-
-        return f(*x)
+        """Returns the value that the object was initialised with."""
+        return self._value
 
 
 class Variable(Expression):
-    """An expression that consists of a single variable."""
+    """An expression representing a single variable.
+
+    Attributes:
+        name (str): The name of the variable.
+
+    Examples:
+        >>> expr = Variable('x')
+        >>> expr.evaluate({'x': 1, 'y': 2})
+        1
+    """
 
     def __init__(self, name):
         self.name = name
+
+    def __repr__(self):
+        return f'Variable(name={repr(self.name)})'
 
     def __hash__(self):
         return hash(self.name)
@@ -156,10 +190,17 @@ class Variable(Expression):
     def __eq__(self, other):
         return isinstance(other, Variable) and self.name == other.name
 
-    def __repr__(self):
-        return f'Variable(name={repr(self.name)})'
-
     def evaluate(self, variables: Dict[str, Any]) -> Any:
+        """Evaluates the variable.
+
+        Looks up for a value by the name of the variable in the provided
+        dictionary of variables.
+
+        Raises:
+            NameError: Raised when the name of the variable is not present
+                as a key in the dictionary of variables.
+        """
+
         if self.name is None:
             raise ValueError(f"The variable cannot be evaluated.")
         if self.name not in variables:
@@ -168,14 +209,51 @@ class Variable(Expression):
         return variables[self.name]
 
 
-class Constant(Expression):
-    """An expression that represents a constant value."""
+class Function(Expression):
+    """An expression that applies a function to the argument expressions.
 
-    def __init__(self, value):
-        self._value = value
+    Examples:
+        >>> x = Variable('x')
+
+        >>> expr = Function(pow, x, 2)
+        >>> expr.evaluate({'x': 2})
+        4
+        >>> expr.evaluate({'x': 3})
+        9
+        >>> expr.evaluate({})
+        Traceback (most recent call last):
+            ...
+        NameError: The variable 'x' is not defined.
+    """
+
+    def __init__(self, f: Callable, *x: Any):
+        """Initialises the object.
+
+        Initialises the object with a function to apply and a list of arguments
+        to pass to the function during the evaluation.
+
+        Args:
+            f (callable): A function to apply.
+            x (iterable): A list of arguments that can be converted to
+                instances of `Expression` (i.e. by calling `as_expression`).
+        """
+
+        self._f = f
+        self._x = x
+
+    def __repr__(self):
+        return f'Function(' \
+                   f'{repr(self._f)}, ' \
+                   f'{", ".join(map(repr, self._x))}' \
+               f')'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
-        return self._value
+        """Evaluates each argument and then calls the function."""
+
+        f = self._f
+        x = [as_expression(x).evaluate(variables) for x in self._x]
+
+        return f(*x)
 
 
 class Sequence(Expression):
@@ -183,6 +261,9 @@ class Sequence(Expression):
 
     def __init__(self, value: Union[list, tuple]):
         self._value = value
+
+    def __repr__(self):
+        return f'Sequence(value={repr(self._value)})'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
         raise NotImplemented
@@ -194,6 +275,9 @@ class Dictionary(Expression):
     def __init__(self, value: dict):
         self._value = value
 
+    def __repr__(self):
+        return f'Dictionary(value={repr(self._value)})'
+
     def evaluate(self, variables: Dict[str, Any]) -> Any:
         raise NotImplemented
 
@@ -201,11 +285,24 @@ class Dictionary(Expression):
 class Error(Expression):
     """An expression that raises an error."""
 
-    def __init__(self, value):
+    def __init__(self, value: Union[str, Exception]):
+        """Initialises the object with either an error message or an exception.
+
+         Args:
+             value: Either an error message or an instance of `Exception`.
+        """
+
         self._value = value
 
+    def __repr__(self):
+        return f'Error(value={repr(self._value)})'
+
     def evaluate(self, variables: Dict[str, Any]) -> Any:
-        if isinstance(self._value, Exception):
-            raise self._value
-        else:
-            raise EvaluationError(self._value)
+        """Raises an error with a value that was passed during initialisation.
+
+        Raises:
+            EvaluationError: Raised on every call. Wraps the error message or
+                the exception that was passed during initialisation.
+        """
+
+        raise EvaluationError(self._value)
