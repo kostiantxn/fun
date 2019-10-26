@@ -101,8 +101,7 @@ match(42, case | x > apply(sqrt, x))
 _Note:_ you cannot simply write `case | x > sqrt(x)` since `sqrt(x)` will be evaluated _before_ the value for `x` is matched.
 
 There are plenty of predefined variables: `a`, `b`, `c`, ..., `x`, `y`, `z`.
-
-You can define your own variables if you need to:
+You can also define your own variables if you need to:
 ``` python
 from fluffy.patterns import Variable, variables
 
