@@ -36,7 +36,7 @@ def as_expression(value: Any) -> 'Expression':
     elif isinstance(value, dict):
         return Dictionary(value)
 
-    raise ValueError(f'{value} cannot be converted to an expression.')
+    raise TypeError(f'{value} cannot be converted to an expression.')
 
 
 class Expression(metaclass=ABCMeta):
@@ -156,14 +156,14 @@ class Constant(Expression):
             value: Any object that will be returned during the evaluation.
         """
 
-        self._value = value
+        self.value = value
 
     def __repr__(self):
-        return f'Constant(value={repr(self._value)})'
+        return f'Constant(value={repr(self.value)})'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
         """Returns the value that the object was initialised with."""
-        return self._value
+        return self.value
 
 
 class Variable(Expression):
@@ -260,10 +260,10 @@ class Sequence(Expression):
     """..."""
 
     def __init__(self, value: Union[list, tuple]):
-        self._value = value
+        self.value = value
 
     def __repr__(self):
-        return f'Sequence(value={repr(self._value)})'
+        return f'Sequence(value={repr(self.value)})'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
         raise NotImplemented
@@ -273,10 +273,10 @@ class Dictionary(Expression):
     """..."""
 
     def __init__(self, value: dict):
-        self._value = value
+        self.value = value
 
     def __repr__(self):
-        return f'Dictionary(value={repr(self._value)})'
+        return f'Dictionary(value={repr(self.value)})'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
         raise NotImplemented
