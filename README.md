@@ -5,12 +5,6 @@ A package for functional programming in Python.
 ### Contents
 
 1. [Pattern matching](#pattern-matching)
-    * [Match basic data types](#match-basic-data-types): `int`, `float`, `complex`, `bool`, `str`
-    * [Match standard collections](#match-standard-collections): `list`, `tuple`, `dict`
-    * [Variables and expressions](#variables-and-expressions)
-    * [Mismatch](#mismatch)
-    * [Raise errors](#raise-errors)
-    * [How it works](#how-it-works)
 1. [Monads](#monads)
 
 ## Pattern matching
@@ -19,13 +13,13 @@ Here is a simple example:
 ``` python
 from fluffy.patterns import match, case
 
-language = 'german'
+language = 'French'
 
-greeting = match(language, case | 'english' > 'hello world!',
-                           case | 'french'  > 'bonjour monde!',
-                           case | 'german'  > 'hallo welt!')
+greeting = match(language, case | 'English' > 'Hello, world!',
+                           case | 'French'  > 'Bonjour le monde!',
+                           case | 'German'  > 'Hallo Welt!')
 
-print(greeting)  # Prints 'hallo welt!'.
+print(greeting)  # Prints 'Bonjour le monde!'.
 ```
 
 The main syntax for `match` has the following form:
@@ -36,94 +30,122 @@ match(value, case | pattern[0] > expression[0],
              ...)
 ```
 
-### Match basic data types
-You can match basic built-in data types including `int`, `float`, `complex`, `bool` and `str`, as well as `None`:
+The `match` function goes through the list of cases in the same order as they are passed and tries to find the first pattern that matches the input value.
+In a case if a pattern that matches the input value exists, an expression corresponding to that pattern is evaluated:
 ``` python
-value = ...
-
-match(value, case | 42    > '(natural) answer to the ultimate question',
-             case | 42j   > '(complex) answer to the ultimate question',
-             case | 9.75  > '9¾? think you're being funny do ya?',
-             case | '451' > 'fahrenheit',
-             case | True  > not False,
-             case | None  > 123.4)
+result = match(42, case | 42 > 'a',
+                   case | 42 > 'b')
+                   
+print(result)  # Prints 'a'.
 ```
-
-### Match standard collections
-You can match lists and tuples:
-``` python
-from fluffy.patterns import match, case
-
-band = ['Armstrong', 'Dirnt', 'Cool']
-name = match(band, case | ['Armstrong', 'Dirnt', 'Cool'] > 'Green Day')
-
-# Or...
-
-band = ('Armstrong', 'Dirnt', 'Cool')
-name = match(band, case | ('Armstrong', 'Dirnt', 'Cool') > 'Green Day')
-```
-
-### Variables and expressions
-You can use variables to fetch values and use them later:
-
-``` python
-from fluffy.patterns import match, case, x
-
-person = ('Richard', 'Feynman')
-
-surname = match(person, case | ('Albert',  x) > x,
-                        case | ('Richard', x) > x)
-```
-
-There are plenty of predefined variables: `a`, `b`, `c`, `f`, `g`, `h`, `m`, `n`, `k`, `x`, `y`, `z`.
-And special ones: `_` and its alias `otherwise`.
-
-You can define your own variables if you need to:
-``` python
-from fluffy.patterns import Variable
-
-name = Variable('name')
-
-match(['Richard', 'Feynman'], case | [name, 'Einstein'] > name + ' Einstein',
-                              case | [name, 'Feynman']  > name + ' Feynman')
-```
-
-You can also define multiple variables at once:
-``` python
-from fluffy.patterns import variables
-
-apple, orange = variables('apple orange')
-
-...
-```
-
-### Mismatch
-Be careful! You may get an error in a case when there are no matching patterns:
+Otherwise, a `MismatchError` is raised:
 ``` python
 # Raises a `MismatchError`.
 match(0, case | +1 > 'positive',
          case | -1 > 'negative')
 ```
 
-You can use `_` (or its alias `otherwise`) to handle default cases.
-`_` matches any value:
+### Match `int`, `float`, `complex`, `bool`, `str` and `None`
+You can match simple built-in types:
+``` python
+match(value, case | 42    > "Matches 42    of `int`.",
+             case | 42.0  > "Matches 42.0  of `float`.",
+             case | 42j   > "Matches 42j   of `complex`.",
+             case | True  > "Matches True  of `bool`.",
+             case | '451' > "Matches '451' of `str`.",
+             case | None  > "Matches None.")
+```
+
+
+### Match variables
+You can match variables to fetch values and use them later:
+
+``` python
+from fluffy.patterns import match, case, x
+
+direction = 'Q'
+
+result = match(direction, case | 'W' > "Moving up.",
+                          case | 'S' > "Moving down.",
+                          case | 'A' > "Moving left.",
+                          case | 'D' > "Moving right."
+                          case |  x  > "Unknown direction: " + x)
+
+print(result)  # Prints 'Unknown direction: Q'.
+```
+
+There are plenty of operators defined for variables:
+``` python
+# Unary operators.
+match(value, case | x > +x)
+match(value, case | x > -x)
+match(value, case | x > abs(x))
+
+# Binary operators.
+match(value, case | x > x + 1)
+match(value, case | x > x - 2)
+match(value, case | x > x * 3)
+match(value, case | x > x / 4)
+match(value, case | x > x // 5)
+match(value, case | x > x ** 6)
+```
+
+You can also apply functions to variables:
+``` python
+from fluffy.pattern import match, case, x, apply
+
+match(42, case | x > apply(sqrt, x))
+```
+
+_Note:_ you cannot simply write `case | x > sqrt(x)` since `sqrt(x)` will be evaluated _before_ the value for `x` is matched.
+
+There are plenty of predefined variables: `a`, `b`, `c`, ..., `x`, `y`, `z`.
+
+You can define your own variables if you need to:
+``` python
+from fluffy.patterns import Variable, variables
+
+a = Variable('a')        # Defines a single variable.
+b, c = variables('b c')  # Defines multiple variables.
+```
+
+You can discard unneeded values with the special variable `_` (or its alias `otherwise`).
+This allows you to handle default cases:
 ``` python
 match(0, case | +1 > 'positive',
          case | -1 > 'negative',
          case |  _ > 'neutral')
 ```
 
+_Note:_ the `_` variable (as well as `otherwise`) cannot be used as an expression. The following code will not work:
+``` python
+match(value, case | _ > 'This will not work: ' + _)
+```
+
+### Match `list`, `tuple` and `dict`
+You can match lists and tuples:
+``` python
+match(value, case | [1, 2, 3] > "Matches a list  [1, 2, 3].",
+                  | (1, 2, 3) > "Matches a tuple (1, 2, 3).")
+```
+
+You can also match dictionaries:
+``` python
+match(value, case | {1: 2, 'a': 'b'} > "Matches dictionaries that have exactly "
+                                       "two key-value pairs: (1, 2) and ('a', 'b').")
+```
+
+### Match data classes
+...
+
 ### Raise errors
 You can raise an error of any type:
 ``` python
 from fluffy.patterns import match, case, error
 
-match('x', case | 'x' > error('message'))
+match('x', case | 'x' > error('message'))              # Raises `EvaluationError('message')`.
+match('x', case | 'x' > error(ValueError('message')))  # Raises `ValueError('message')`.
 ```
-
-### How it works
-
-...
 
 ## Monads
 You can use `fluffy.monads` to write monadic functions.
