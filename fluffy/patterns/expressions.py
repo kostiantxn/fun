@@ -78,8 +78,14 @@ class Expression(metaclass=ABCMeta):
     def __floordiv__(self, other) -> 'Expression':
         return Function(operator.floordiv, self, other)
 
+    def __mod__(self, other) -> 'Expression':
+        return Function(operator.mod, self, other)
+
     def __pow__(self, power, modulo=None) -> 'Expression':
         return Function(operator.pow, self, power, modulo)
+
+    def __matmul__(self, other) -> 'Expression':
+        return Function(operator.matmul, self, other)
 
     def __radd__(self, other) -> 'Expression':
         return Function(operator.add, other, self)
@@ -96,8 +102,32 @@ class Expression(metaclass=ABCMeta):
     def __rfloordiv__(self, other) -> 'Expression':
         return Function(operator.floordiv, other, self)
 
+    def __rmod__(self, other) -> 'Expression':
+        return Function(operator.mod, other, self)
+
     def __rpow__(self, other) -> 'Expression':
         return Function(operator.pow, other, self)
+
+    def __rmatmul__(self, other) -> 'Expression':
+        return Function(operator.matmul, other, self)
+
+    def __eq__(self, other) -> 'Expression':
+        return Function(operator.eq, self, other)
+
+    def __ne__(self, other) -> 'Expression':
+        return Function(operator.ne, self, other)
+
+    def __lt__(self, other) -> 'Expression':
+        return Function(operator.lt, self, other)
+
+    def __le__(self, other) -> 'Expression':
+        return Function(operator.le, self, other)
+
+    def __gt__(self, other) -> 'Expression':
+        return Function(operator.gt, self, other)
+
+    def __ge__(self, other) -> 'Expression':
+        return Function(operator.ge, self, other)
 
 
 class Function(Expression):
@@ -130,8 +160,10 @@ class Variable(Expression):
         return f'Variable(name={repr(self.name)})'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
+        if self.name is None:
+            raise ValueError(f"The variable cannot be evaluated.")
         if self.name not in variables:
-            raise NameError(f"Variable '{self.name}' is not defined.")
+            raise NameError(f"The variable '{self.name}' is not defined.")
 
         return variables[self.name]
 
