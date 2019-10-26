@@ -74,7 +74,7 @@ result = match(direction, case | 'W' > "Moving up.",
 print(result)  # Prints 'Unknown direction: Q'.
 ```
 
-There are plenty of operators defined for variables:
+You can use operators on expressions:
 ``` python
 # Unary operators.
 match(value, case | x > +x)
@@ -86,11 +86,11 @@ match(value, case | x > x + 1)
 match(value, case | x > x - 2)
 match(value, case | x > x * 3)
 match(value, case | x > x / 4)
-match(value, case | x > x // 5)
-match(value, case | x > x ** 6)
+
+# And others...
 ```
 
-You can also apply functions to variables:
+You can also apply functions to expressions:
 ``` python
 from math import sqrt
 from fluffy.pattern import match, case, x, apply
