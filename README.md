@@ -92,6 +92,7 @@ match(value, case | x > x ** 6)
 
 You can also apply functions to variables:
 ``` python
+from math import sqrt
 from fluffy.pattern import match, case, x, apply
 
 match(42, case | x > apply(sqrt, x))
