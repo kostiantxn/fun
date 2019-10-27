@@ -126,7 +126,28 @@ match(value, case | _ > 'This will not work: ' + _)
 You can match lists and tuples:
 ``` python
 match(value, case | [1, 2, 3] > "Matches a list  [1, 2, 3].",
-                  | (1, 2, 3) > "Matches a tuple (1, 2, 3).")
+             case | (1, 2, 3) > "Matches a tuple (1, 2, 3).")
+```
+
+As you would expect, `fluffy.patterns` allows to match variables inside lists and tuples:
+``` python
+result = match([1, 2, 3], case | [1, 2, x] > x)
+
+print(result)  # Prints '3'.
+```
+
+But be careful: you cannot use the same variable twice within a single pattern. For example, the following code will cause an error:
+``` python
+match([1, 2, 3], case | [1, x, x] > x)  # Raises `NameError`.
+```
+
+To achive the result, you should use different variables:
+``` python
+from fluffy.pattern import match, case, x, y
+
+result = match([1, 2, 3], case | [1, x, y] > x + y)
+
+print(result)  # Prints '5'.
 ```
 
 You can also match dictionaries:
@@ -143,8 +164,7 @@ You can raise an error of any type:
 ``` python
 from fluffy.patterns import match, case, error
 
-match('x', case | 'x' > error('message'))              # Raises `EvaluationError('message')`.
-match('x', case | 'x' > error(ValueError('message')))  # Raises `ValueError('message')`.
+match('x', case | 'x' > error('message'))  # Raises `EvaluationError('message')`.
 ```
 
 ## Monads
@@ -154,11 +174,11 @@ Here is an example:
 from fluffy.monads import monad, List
 
 @monad(List)
-def example(n):
-    x = yield List[1, 2, 3]
-    y = yield List[1, 2, 3]
-    
-    return (x + y) * n
+def pairs(n):
+    x = yield List[1, ..., n]
+    y = yield List[x, ..., n]
 
-print(example(5))  # Prints `List[5, 10, 15, 10, 20, 30, 15, 30, 45]`.
+    return (x, y)
+
+print(pairs(3))  # Prints 'List[(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)]'.
 ```
