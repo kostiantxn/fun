@@ -5,9 +5,9 @@ from fluffy.patterns.expressions import expression
 class Case:
     """Contains a pair of (`pattern`, `expression`)."""
 
-    def __init__(self, pattern, expression):
-        self.pattern = pattern
-        self.expression = expression
+    def __init__(self, pattern_, expression_):
+        self.pattern = pattern_
+        self.expression = expression_
 
     def __iter__(self):
         return iter([pattern(self.pattern),
@@ -15,8 +15,8 @@ class Case:
 
     def __repr__(self):
         return f'Case(' \
-                    f'pattern={repr(self.pattern)}, ' \
-                    f'expression={repr(self.expression)}' \
+                    f'pattern_={repr(self.pattern)}, ' \
+                    f'expression_={repr(self.expression)}' \
                f')'
 
 
@@ -26,18 +26,18 @@ class Creation:
     Examples:
         >>> case = Creation()
         >>> case | 1 > '1'
-        Case(pattern=1, expression='1')
+        Case(pattern_=1, expression_='1')
     """
 
     class First:
-        def __init__(self, pattern):
-            self.pattern = pattern
+        def __init__(self, pattern_):
+            self.pattern = pattern_
 
-        def __gt__(self, expression) -> Case:
-            return Case(self.pattern, expression)
+        def __gt__(self, expression_) -> Case:
+            return Case(self.pattern, expression_)
 
-    def __or__(self, pattern) -> 'Creation.First':
-        return Creation.First(pattern)
+    def __or__(self, pattern_) -> 'Creation.First':
+        return Creation.First(pattern_)
 
 
 case: Creation = Creation()
