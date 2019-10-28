@@ -18,10 +18,10 @@ def pattern(value: Any) -> 'Pattern':
 
     Examples:
         >>> pattern(42)
-        FixedPattern(pattern=42)
+        FixedPattern(value=42)
 
         >>> pattern([451, 1984])
-        SequencePattern(pattern=[451, 1984])
+        SequencePattern(value=[451, 1984])
 
     Raises:
         TypeError: Raised when the type of the specified value is not
@@ -138,7 +138,7 @@ class FixedPattern(Pattern):
     fetch any variables.
 
     Attributes:
-        pattern: A fixed value to match against.
+        value: A fixed value to match against.
 
     Examples:
         >>> p = FixedPattern(1)
@@ -148,16 +148,16 @@ class FixedPattern(Pattern):
         False
     """
 
-    def __init__(self, pattern_: Any):
-        self.pattern = pattern_
+    def __init__(self, value: Any):
+        self.value = value
 
     def __repr__(self):
-        return f'FixedPattern(pattern_={repr(self.pattern)})'
+        return f'FixedPattern(value={repr(self.value)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the input value is equal to the fixed value."""
 
-        if value == self.pattern:
+        if value == self.value:
             return Match.success()
         else:
             return Match.failure()
@@ -204,7 +204,7 @@ class SequencePattern(Pattern):
     the results of those matches.
 
     Attributes:
-        pattern: A sequence to match against.
+        value: A sequence to match against.
 
     Examples:
         >>> p = SequencePattern([1, 2, 3])
@@ -214,22 +214,22 @@ class SequencePattern(Pattern):
         False
     """
 
-    def __init__(self, pattern_: Union[list, tuple, range]):
-        self.pattern = pattern_
+    def __init__(self, value: Union[list, tuple, range]):
+        self.value = value
 
     def __repr__(self):
-        return f'SequencePattern(pattern_={repr(self.pattern)})'
+        return f'SequencePattern(value={repr(self.value)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the specified sequence matches the input value."""
 
-        if not isinstance(value, type(self.pattern)):
+        if not isinstance(value, type(self.value)):
             return Match.failure()
 
         success = Match.success()
         nothing = object()
 
-        ps = iter(self.pattern)
+        ps = iter(self.value)
         vs = iter(value)
 
         while True:
@@ -257,7 +257,7 @@ class DictionaryPattern(Pattern):
     first pair. Merges the results of those matches.
 
     Attributes:
-        pattern: A dictionary pattern to match values against.
+        value: A dictionary pattern to match values against.
 
     Examples:
         >>> p = DictionaryPattern({'a': 'b'})
@@ -269,11 +269,11 @@ class DictionaryPattern(Pattern):
         False
     """
 
-    def __init__(self, pattern_: dict):
-        self.pattern = pattern_
+    def __init__(self, value: dict):
+        self.value = value
 
     def __repr__(self):
-        return f'DictionaryPattern(pattern_={repr(self.pattern)})'
+        return f'DictionaryPattern(value={repr(self.value)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the specified dictionary matches the input value.
@@ -289,7 +289,7 @@ class DictionaryPattern(Pattern):
         success = Match.success()
         value = dict(value)
 
-        for pkey, pvalue in self.pattern.items():
+        for pkey, pvalue in self.value.items():
             pkey, pvalue = pattern(pkey), pattern(pvalue)
             found = None
 
@@ -326,7 +326,7 @@ class DataclassPattern(Pattern):
     results of those matches.
 
     Attributes:
-        pattern: An instance of some dataclass to match values against.
+        value: An instance of some dataclass to match values against.
 
     Examples:
         >>> from dataclasses import dataclass
@@ -343,22 +343,22 @@ class DataclassPattern(Pattern):
         False
     """
 
-    def __init__(self, pattern_):
-        self.pattern = pattern_
+    def __init__(self, value):
+        self.value = value
 
     def __repr__(self):
-        return f'DataclassPattern(pattern_={repr(self.pattern)})'
+        return f'DataclassPattern(value={repr(self.value)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the specified pattern matches the input value."""
 
-        if not isinstance(value, type(self.pattern)):
+        if not isinstance(value, type(self.value)):
             return Match.failure()
 
         success = Match.success()
 
         for field in fields(value):
-            p = getattr(self.pattern, field.name)
+            p = getattr(self.value, field.name)
             v = getattr(value, field.name)
 
             match = pattern(p).match(v)
@@ -378,25 +378,25 @@ class TypePattern(Pattern):
     the matched value in a case if the name of a variable was specified.
 
     Attributes:
-        pattern (type): A type to match values against.
+        value (type): A type to match values against.
         variable (str, optional): The name of the variable to associate the
             value with.
     """
 
-    def __init__(self, pattern_: Type, variable: Optional[str]):
-        self.pattern = pattern_
+    def __init__(self, value: Type, variable: Optional[str]):
+        self.value = value
         self.variable = variable
 
     def __repr__(self):
         return f'TypePattern(' \
-                   f'pattern_={repr(self.pattern)}, ' \
+                   f'value={repr(self.value)}, ' \
                    f'variable={repr(self.variable)}' \
                f')'
 
     def match(self, value: Any) -> Match:
         """Checks whether the value has the same type as the specified one."""
 
-        if isinstance(value, self.pattern):
+        if isinstance(value, self.value):
             if self.variable is not None:
                 return Match.success({self.variable: value})
             else:
@@ -408,14 +408,14 @@ class TypePattern(Pattern):
 class RegexPattern(Pattern):
     """A pattern that matches a regular expression."""
 
-    def __init__(self, pattern_: Union[str, re.Pattern]):
-        if isinstance(pattern_, str):
-            pattern_ = re.compile(pattern_)
+    def __init__(self, value: Union[str, re.Pattern]):
+        if isinstance(value, str):
+            value = re.compile(value)
 
-        self.pattern = pattern_
+        self.pattern = value
 
     def __repr__(self):
-        return f'RegexPattern(pattern_={repr(self.pattern)})'
+        return f'RegexPattern(value={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         raise NotImplemented
