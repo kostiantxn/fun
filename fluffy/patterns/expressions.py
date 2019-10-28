@@ -257,7 +257,18 @@ class Function(Expression):
 
 
 class Sequence(Expression):
-    """..."""
+    """An expression that represents a sequence (list, tuple).
+
+    Attributes:
+        value: A list or tuples of expressions to evaluate.
+
+    Examples:
+        >>> x, y = Variable('x'), Variable('y')
+
+        >>> expr = Sequence([1, x, y, 4])
+        >>> expr.evaluate({'x': 2, 'y': 3})
+        [1, 2, 3, 4]
+    """
 
     def __init__(self, value: Union[list, tuple]):
         self.value = value
@@ -266,11 +277,27 @@ class Sequence(Expression):
         return f'Sequence(value={repr(self.value)})'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
-        raise NotImplemented
+        """Returns a sequence with evaluated elements."""
+
+        f = type(self.value)  # Either a `list` or a `tuple`.
+        x = (expression(x).evaluate(variables) for x in self.value)
+
+        return f(x)
 
 
 class Dictionary(Expression):
-    """..."""
+    """An expression that represents a dictionary.
+
+    Attributes:
+        value: A dictionary of expressions to evaluate.
+
+    Examples:
+        >>> x, y = Variable('x'), Variable('y')
+
+        >>> expr = Dictionary({1: x, y: 4})
+        >>> expr.evaluate({'x': 2, 'y': 3})
+        {1: 2, 3: 4}
+    """
 
     def __init__(self, value: dict):
         self.value = value
@@ -279,7 +306,10 @@ class Dictionary(Expression):
         return f'Dictionary(value={repr(self.value)})'
 
     def evaluate(self, variables: Dict[str, Any]) -> Any:
-        raise NotImplemented
+        """Returns a dictionary with evaluated elements."""
+        return {expression(x).evaluate(variables):
+                expression(y).evaluate(variables)
+                for x, y in self.value.items()}
 
 
 class Error(Expression):
