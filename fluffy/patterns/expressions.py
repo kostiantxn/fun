@@ -61,6 +61,12 @@ class Expression(metaclass=ABCMeta):
             The evaluated value.
         """
 
+    def __getattr__(self, item) -> 'Expression':
+        return Attribute(self, item)
+
+    def __call__(self, *args, **kwargs) -> 'Expression':
+        return Call(self, args, kwargs)
+
     def __pos__(self) -> 'Expression':
         return Function(operator.pos, self)
 
@@ -178,7 +184,7 @@ class Variable(Expression):
         1
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
     def __repr__(self):
@@ -310,6 +316,60 @@ class Dictionary(Expression):
         return {expression(x).evaluate(variables):
                 expression(y).evaluate(variables)
                 for x, y in self.value.items()}
+
+
+class Attribute(Expression):
+    """An expression that gets an attribute.
+
+    Attribute:
+        expr (Expression): An expression to get an attribute of.
+        name (str): The name of an attribute to get.
+
+    Examples:
+        >>> from dataclasses import dataclass
+
+        >>> @dataclass
+        ... class Person:
+        ...     name: str
+
+        >>> expr = Variable('x')
+        >>> expr = Attribute(expr, 'name')
+        >>> expr.evaluate({'x': Person(name='Richard')})
+        'Richard'
+    """
+
+    def __init__(self, expr: Expression, name: str):
+        self.expr = expr
+        self.name = name
+
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
+        """Evaluates the expression and gets its attribute."""
+        return getattr(self.expr.evaluate(variables), self.name)
+
+
+class Call(Expression):
+    """A calling expression.
+
+    Attributes:
+        expr (Expression): An expression to call.
+        *args: Positional arguments to call with.
+        **kwargs: Keyword arguments to call with.
+
+    Examples:
+        >>> expr = Constant('ABC')
+        >>> expr = expr.lower().strip('c')
+        >>> expr.evaluate({})
+        'ab'
+    """
+
+    def __init__(self, expr: Expression, args, kwargs):
+        self.expr = expr
+        self.args = args
+        self.kwargs = kwargs
+
+    def evaluate(self, variables: Dict[str, Any]) -> Any:
+        """Evaluates the expression and calls it."""
+        return self.expr.evaluate(variables)(*self.args, **self.kwargs)
 
 
 class Error(Expression):
