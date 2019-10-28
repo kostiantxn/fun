@@ -302,14 +302,18 @@ class DictionaryPattern(Pattern):
 
                 if x.is_failure() or y.is_failure():
                     continue
-                if i in mapping.keys() or j in mapping.values():
-                    raise ValueError(f'Pattern {p} matches multiple pairs.')
+
+                if i in mapping.keys():
+                    raise ValueError(f'Pattern {p} matches multiple values.')
+                if j in mapping.values():
+                    raise ValueError(f'Value {v} matches multiple patterns.')
 
                 mapping[i] = j
 
                 success = Match.merge(success, x)
                 success = Match.merge(success, y)
 
+            # If the pattern pair does not match any value pair.
             if i not in mapping:
                 return Match.failure()
 
