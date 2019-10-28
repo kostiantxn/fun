@@ -17,7 +17,7 @@ def test_expression_return_value(type_, values):
         expr = expression(value)
 
         assert isinstance(expr, type_)
-        assert expr.value == value
+        assert expr.value is value
 
 
 def test_expression_return_value_for_expression():
