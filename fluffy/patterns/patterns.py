@@ -286,36 +286,34 @@ class DictionaryPattern(Pattern):
         if not isinstance(value, dict):
             return Match.failure()
 
+        ps = list(self.value.items())
+        vs = list(value.items())
+
+        if len(ps) != len(vs):
+            return Match.failure()
+
         success = Match.success()
-        value = dict(value)
+        mapping = dict()
 
-        for pkey, pvalue in self.value.items():
-            pkey, pvalue = pattern(pkey), pattern(pvalue)
-            found = None
+        for i, p in enumerate(ps):
+            for j, v in enumerate(vs):
+                x = pattern(p[0]).match(v[0])  # Match keys.
+                y = pattern(p[1]).match(v[1])  # Match values.
 
-            for vkey, vvalue in value.items():
-                x = pkey.match(vkey)
-                y = pvalue.match(vvalue)
+                if x.is_failure() or y.is_failure():
+                    continue
+                if i in mapping.keys() or j in mapping.values():
+                    raise ValueError(f'Pattern {p} matches multiple pairs.')
 
-                if x.is_success() and y.is_success():
-                    if found is not None:
-                        raise ValueError(f'Pattern ({pkey}: {pvalue}) '
-                                         f'matches multiple pairs.')
+                mapping[i] = j
 
-                    success = Match.merge(success, x)
-                    success = Match.merge(success, y)
+                success = Match.merge(success, x)
+                success = Match.merge(success, y)
 
-                    found = vkey
-
-            if found is not None:
-                value.pop(found)
-            else:
+            if i not in mapping:
                 return Match.failure()
 
-        if len(value) > 0:
-            return Match.failure()
-        else:
-            return success
+        return success
 
 
 class DataclassPattern(Pattern):

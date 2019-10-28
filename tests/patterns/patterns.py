@@ -200,10 +200,14 @@ def test_dictionary_pattern_failed_match(value, test):
 
 
 @pytest.mark.parametrize("value, test", [
-    ({1: 2, x: 2}, {1: 2, 3: 2})
+    ({1: 2, x: 2}, {1: 2, 3: 2}),
+    ({1: 2, x: 2}, {3: 2, 1: 2})
 ])
 def test_dictionary_pattern_raising_error(value, test):
     """Test that `DictionaryPattern` raises an error when there are multiple
     matching key-value pairs."""
 
-    ...
+    p = DictionaryPattern(value)
+
+    with pytest.raises(ValueError):
+        p.match(test)
