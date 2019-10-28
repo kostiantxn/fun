@@ -1,5 +1,5 @@
 from fluffy.patterns.patterns import pattern
-from fluffy.patterns.expressions import as_expression
+from fluffy.patterns.expressions import expression
 
 
 class Case:
@@ -11,7 +11,7 @@ class Case:
 
     def __iter__(self):
         return iter([pattern(self.pattern),
-                     as_expression(self.expression)])
+                     expression(self.expression)])
 
     def __repr__(self):
         return f'Case(' \

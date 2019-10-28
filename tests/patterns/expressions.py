@@ -1,7 +1,7 @@
 import pytest
 from pytest import mark
 
-from fluffy.patterns import as_expression, \
+from fluffy.patterns import expression, \
     Constant, Variable, Sequence, Dictionary, Function, Error, EvaluationError
 
 
@@ -10,30 +10,30 @@ from fluffy.patterns import as_expression, \
     (Sequence, [(1, 2, 3), [1, 2, 3]]),
     (Dictionary, [{'a': 'b'}])
 ])
-def test_as_expression_return_value(type_, values):
-    """Tests that `as_expression` returns values of correct type."""
+def test_expression_return_value(type_, values):
+    """Tests that `expression` returns values of correct type."""
 
     for value in values:
-        expr = as_expression(value)
+        expr = expression(value)
 
         assert isinstance(expr, type_)
         assert expr.value == value
 
 
-def test_as_expression_return_value_for_expression():
-    """Test that `as_expression` returns the same value that was passed
+def test_expression_return_value_for_expression():
+    """Test that `expression` returns the same value that was passed
     to the function in a case if the type of that value is `Expression`."""
 
     expr = Variable('x')
-    assert as_expression(expr) is expr
+    assert expression(expr) is expr
 
 
-def test_as_expression_raising_error():
-    """Test that `as_expression` raises an error when the type of the input
+def test_expression_raising_error():
+    """Test that `expression` raises an error when the type of the input
     argument is not supported."""
 
     with pytest.raises(TypeError):
-        as_expression(object())
+        expression(object())
 
 
 def test_constant_evaluate_result():

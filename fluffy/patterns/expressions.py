@@ -5,7 +5,7 @@ from typing import Any, Dict, Union, Callable
 from fluffy.patterns.errors import EvaluationError
 
 
-def as_expression(value: Any) -> 'Expression':
+def expression(value: Any) -> 'Expression':
     """Creates an instance of `Expression` from the specified value.
 
     Args:
@@ -16,10 +16,10 @@ def as_expression(value: Any) -> 'Expression':
         the specified value.
 
     Examples:
-        >>> as_expression(42)
+        >>> expression(42)
         Constant(value=42)
 
-        >>> as_expression([451, 1984])
+        >>> expression([451, 1984])
         Sequence(value=[451, 1984])
 
     Raises:
@@ -235,7 +235,7 @@ class Function(Expression):
         Args:
             f (callable): A function to apply.
             x (iterable): A list of arguments that can be converted to
-                instances of `Expression` (i.e. by calling `as_expression`).
+                instances of `Expression` (i.e. by calling `expression`).
         """
 
         self._f = f
@@ -251,7 +251,7 @@ class Function(Expression):
         """Evaluates each argument and then calls the function."""
 
         f = self._f
-        x = [as_expression(x).evaluate(variables) for x in self._x]
+        x = [expression(x).evaluate(variables) for x in self._x]
 
         return f(*x)
 
