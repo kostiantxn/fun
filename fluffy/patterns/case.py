@@ -1,4 +1,4 @@
-from fluffy.patterns.patterns import as_pattern
+from fluffy.patterns.patterns import pattern
 from fluffy.patterns.expressions import as_expression
 
 
@@ -10,7 +10,7 @@ class Case:
         self.expression = expression
 
     def __iter__(self):
-        return iter([as_pattern(self.pattern),
+        return iter([pattern(self.pattern),
                      as_expression(self.expression)])
 
     def __repr__(self):

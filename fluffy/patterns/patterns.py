@@ -6,7 +6,7 @@ from dataclasses import is_dataclass, fields
 from fluffy.patterns.expressions import Variable
 
 
-def as_pattern(value: Any) -> 'Pattern':
+def pattern(value: Any) -> 'Pattern':
     """Creates an instance of `Pattern` from the specified value.
 
     Args:
@@ -17,10 +17,10 @@ def as_pattern(value: Any) -> 'Pattern':
         the specified value.
 
     Examples:
-        >>> as_pattern(42)
+        >>> pattern(42)
         FixedPattern(pattern=42)
 
-        >>> as_pattern([451, 1984])
+        >>> pattern([451, 1984])
         SequencePattern(pattern=[451, 1984])
 
     Raises:
@@ -141,18 +141,18 @@ class FixedPattern(Pattern):
         pattern: A fixed value to match against.
 
     Examples:
-        >>> pattern = FixedPattern(1)
-        >>> pattern.match(1).is_success()
+        >>> p = FixedPattern(1)
+        >>> p.match(1).is_success()
         True
-        >>> pattern.match('x').is_success()
+        >>> p.match('x').is_success()
         False
     """
 
-    def __init__(self, pattern: Any):
-        self.pattern = pattern
+    def __init__(self, pattern_: Any):
+        self.pattern = pattern_
 
     def __repr__(self):
-        return f'FixedPattern(pattern={repr(self.pattern)})'
+        return f'FixedPattern(pattern_={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the input value is equal to the fixed value."""
@@ -207,18 +207,18 @@ class SequencePattern(Pattern):
         pattern: A sequence to match against.
 
     Examples:
-        >>> pattern = SequencePattern([1, 2, 3])
-        >>> pattern.match([1, 2, 3]).is_success()
+        >>> p = SequencePattern([1, 2, 3])
+        >>> p.match([1, 2, 3]).is_success()
         True
-        >>> pattern.match([1, 2, 0]).is_success()
+        >>> p.match([1, 2, 0]).is_success()
         False
     """
 
-    def __init__(self, pattern: Union[list, tuple, range]):
-        self.pattern = pattern
+    def __init__(self, pattern_: Union[list, tuple, range]):
+        self.pattern = pattern_
 
     def __repr__(self):
-        return f'SequencePattern(pattern={repr(self.pattern)})'
+        return f'SequencePattern(pattern_={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the specified sequence matches the input value."""
@@ -241,7 +241,7 @@ class SequencePattern(Pattern):
             if p is nothing or v is nothing:
                 return Match.failure()
 
-            match = as_pattern(p).match(v)
+            match = pattern(p).match(v)
 
             if match.is_success():
                 success = Match.merge(success, match)
@@ -260,20 +260,20 @@ class DictionaryPattern(Pattern):
         pattern: A dictionary pattern to match values against.
 
     Examples:
-        >>> pattern = DictionaryPattern({'a': 'b'})
-        >>> pattern.match({'a': 'b'}).is_success()
+        >>> p = DictionaryPattern({'a': 'b'})
+        >>> p.match({'a': 'b'}).is_success()
         True
-        >>> pattern.match({'a': 'c'}).is_success()
+        >>> p.match({'a': 'c'}).is_success()
         False
-        >>> pattern.match({'a': 'b', 'c': 'd'}).is_success()
+        >>> p.match({'a': 'b', 'c': 'd'}).is_success()
         False
     """
 
-    def __init__(self, pattern: dict):
-        self.pattern = pattern
+    def __init__(self, pattern_: dict):
+        self.pattern = pattern_
 
     def __repr__(self):
-        return f'DictionaryPattern(pattern={repr(self.pattern)})'
+        return f'DictionaryPattern(pattern_={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the specified dictionary matches the input value.
@@ -290,7 +290,7 @@ class DictionaryPattern(Pattern):
         value = dict(value)
 
         for pkey, pvalue in self.pattern.items():
-            pkey, pvalue = as_pattern(pkey), as_pattern(pvalue)
+            pkey, pvalue = pattern(pkey), pattern(pvalue)
             found = None
 
             for vkey, vvalue in value.items():
@@ -336,18 +336,18 @@ class DataclassPattern(Pattern):
         ...     x: int
         ...     y: int
 
-        >>> pattern = DataclassPattern(Vector(1, 2))
-        >>> pattern.match(Vector(1, 2)).is_success()
+        >>> p = DataclassPattern(Vector(1, 2))
+        >>> p.match(Vector(1, 2)).is_success()
         True
-        >>> pattern.match(Vector(2, 3)).is_success()
+        >>> p.match(Vector(2, 3)).is_success()
         False
     """
 
-    def __init__(self, pattern):
-        self.pattern = pattern
+    def __init__(self, pattern_):
+        self.pattern = pattern_
 
     def __repr__(self):
-        return f'DataclassPattern(pattern={repr(self.pattern)})'
+        return f'DataclassPattern(pattern_={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         """Checks whether the specified pattern matches the input value."""
@@ -361,7 +361,7 @@ class DataclassPattern(Pattern):
             p = getattr(self.pattern, field.name)
             v = getattr(value, field.name)
 
-            match = as_pattern(p).match(v)
+            match = pattern(p).match(v)
 
             if match.is_success():
                 success = Match.merge(success, match)
@@ -383,13 +383,13 @@ class TypePattern(Pattern):
             value with.
     """
 
-    def __init__(self, pattern: Type, variable: Optional[str]):
-        self.pattern = pattern
+    def __init__(self, pattern_: Type, variable: Optional[str]):
+        self.pattern = pattern_
         self.variable = variable
 
     def __repr__(self):
         return f'TypePattern(' \
-                   f'pattern={repr(self.pattern)}, ' \
+                   f'pattern_={repr(self.pattern)}, ' \
                    f'variable={repr(self.variable)}' \
                f')'
 
@@ -408,14 +408,14 @@ class TypePattern(Pattern):
 class RegexPattern(Pattern):
     """A pattern that matches a regular expression."""
 
-    def __init__(self, pattern: Union[str, re.Pattern]):
-        if isinstance(pattern, str):
-            pattern = re.compile(pattern)
+    def __init__(self, pattern_: Union[str, re.Pattern]):
+        if isinstance(pattern_, str):
+            pattern_ = re.compile(pattern_)
 
-        self.pattern = pattern
+        self.pattern = pattern_
 
     def __repr__(self):
-        return f'RegexPattern(pattern={repr(self.pattern)})'
+        return f'RegexPattern(pattern_={repr(self.pattern)})'
 
     def match(self, value: Any) -> Match:
         raise NotImplemented
