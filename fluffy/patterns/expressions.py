@@ -1,6 +1,6 @@
 import operator
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Union, Callable
+from typing import Any, Dict, Union, Callable, Optional
 
 from fluffy.patterns.errors import EvaluationError
 
@@ -184,7 +184,7 @@ class Variable(Expression):
         1
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: Optional[str]):
         self.name = name
 
     def __repr__(self):
