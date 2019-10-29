@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 import pytest
 
@@ -9,8 +10,8 @@ from fluffy.patterns import pattern, x, y, z, \
 
 @dataclass
 class Vector:
-    x: int
-    y: int
+    x: Any
+    y: Any
 
 
 @pytest.mark.parametrize("type_, values", [
@@ -211,3 +212,33 @@ def test_dictionary_pattern_raising_error(value, test):
 
     with pytest.raises(ValueError):
         p.match(test)
+
+
+@pytest.mark.parametrize("value, test, variables", [
+    (Vector(1, 2),      Vector(1, 2),      {}),
+    (Vector(x, 2),      Vector(1, 2),      {'x': 1}),
+    (Vector([1, x], 3), Vector([1, 2], 3), {'x': 2}),
+    (Vector([1, x], y), Vector([1, 2], 3), {'x': 2, 'y': 3}),
+])
+def test_dataclass_pattern_successful_match(value, test, variables):
+    """Test that `DataclassPattern` correctly matches input values."""
+
+    p = DataclassPattern(value)
+    m = p.match(test)
+
+    assert m.is_success()
+    assert m.variables == variables
+
+
+@pytest.mark.parametrize("value, test", [
+    (Vector(1, 2), Vector(1, 1)),
+    (Vector(1, 2), Vector(2, 2)),
+    (Vector(1, x), Vector(2, 2))
+])
+def test_dataclass_pattern_failed_match(value, test):
+    """Test that `DataclassMatch` fails to match input values."""
+
+    p = DataclassPattern(value)
+    m = p.match(test)
+
+    assert m.is_failure()
