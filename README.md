@@ -22,7 +22,8 @@ greeting = match(language, case | 'English' > 'Hello, world!',
 print(greeting)  # Prints 'Bonjour le monde!'.
 ```
 
-The main syntax for `match` has the following form:
+### How it works
+Generally, the usage of the `match` function has the following form:
 ``` python
 match(value, case | pattern[0] > expression[0],
              case | pattern[1] > expression[1],
@@ -48,18 +49,17 @@ match(0, case | +1 > 'positive',
 ### Match `int`, `float`, `complex`, `bool`, `str` and `None`
 You can match simple built-in types:
 ``` python
-match(value, case | 42    > "Matches 42    of `int`.",
-             case | 42.0  > "Matches 42.0  of `float`.",
-             case | 42j   > "Matches 42j   of `complex`.",
-             case | True  > "Matches True  of `bool`.",
-             case | '451' > "Matches '451' of `str`.",
+match(value, case | 42    > "Matches 42.",
+             case | 42.0  > "Matches 42.0.",
+             case | 42j   > "Matches 42j.",
+             case | True  > "Matches True.",
+             case | '451' > "Matches '451'.",
              case | None  > "Matches None.")
 ```
 
 
 ### Match variables
 You can match variables to fetch values and use them later:
-
 ``` python
 from fluffy.patterns import match, case, x
 
@@ -141,7 +141,7 @@ But be careful: you cannot use the same variable twice within a single pattern. 
 match([1, 2, 3], case | [1, x, x] > x)  # Raises `NameError`.
 ```
 
-To achive the result, you should use different variables:
+To achive the desired result, you should use different variables:
 ``` python
 from fluffy.pattern import match, case, x, y
 
