@@ -1,14 +1,38 @@
-from typing import Any
+from typing import Any, Callable
 
 
 class List:
+    """A linked list.
+
+    A linked list data type. Implements `Functor`, `Applicative` and `Monad`
+    type classes.
+    """
 
     @classmethod
-    def unit(cls, x):
+    def unit(cls, x: Any) -> 'List':
+        """Implementation of the `unit :: a -> m a` function.
+
+        The same as `return x` in Haskell.
+
+        Args:
+            x: Any value to wrap into `List`.
+
+        Returns:
+            An instance of `List` containing a single `x`.
+        """
         return Node(x)
 
     @classmethod
-    def bind(cls, m, g):
+    def bind(cls, m: 'List', g: Callable) -> 'List':
+        """Implementation of the `bind :: m a -> (a -> m b) -> m b` function.
+
+        The same as `m >>= g` in Haskell.
+
+        Args:
+            m: An instance of `List` to apply the function `g` to.
+            g: A function `a -> m b` to apply to each element of `m`.
+        """
+
         def concat(x, y):
             if isinstance(x, Empty):
                 return y
@@ -124,11 +148,26 @@ class Node(List):
         self.value = value
         self.tail = tail or Empty()
 
+    def __iter__(self):
+        node = self
+        while not isinstance(node, Empty):
+            yield node.value
+            node = node.tail
+
     def __repr__(self):
         return f'Node({repr(self.value)}, {repr(self.tail)})'
+
+    def __str__(self):
+        return 'List[' + ', '.join(map(str, self)) + ']'
 
 
 class Empty(List):
 
+    def __iter__(self):
+        return iter(())
+
     def __repr__(self):
         return 'Empty()'
+
+    def __str__(self):
+        return 'List[]'
