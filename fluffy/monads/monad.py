@@ -2,13 +2,57 @@ import ast
 import inspect
 from functools import wraps
 from importlib import import_module
+from typing import Type, Callable
 
 
-def monad(cls):
-    """A decorator that converts the decorated function to a monad."""
+def monad(type_: Type) -> Callable:
+    """Converts the decorated function to a monad.
+
+    Converts the function to a monadic evaluation of the specified type. The
+    function must consist of the following statements:
+
+        x = g(y)     # The same as 'let x = g y' in Haskell.
+        x = yield m  # The same as 'x <- m' in Haskell.
+        yield m      # The same as 'm' in Haskell.
+        return x     # The same as 'return x' in Haskell.
+
+    A decorated function must end with either a monadic value of the specified
+    type or a return statement. In a case, if a function has any other
+    statements or the last statement is not valid (neither a monadic value nor
+    a return statement), an exception is raised.
+
+    The decorator converts a function with statements defined above to a chain
+    of bindings of monadic operations. For example, the following code:
+
+        @monad(List)
+        def triples(n):
+            x = yield List[1, ..., n]
+            y = yield List[x, ..., n]
+            z = yield List[y, ..., n]
+
+            return (x, y, z)
+
+    Will be roughly converted to the following:
+
+        triples = lambda n: (
+            List[1, ..., n] >>= (lambda x:
+            List[x, ..., n] >>= (lambda y:
+            List[y, ..., n] >>= (lambda z:
+                List.unit((x, y, z))
+            )))
+        )
+
+        # Here `>>=` is the `List.bind` function.
+
+    Args:
+        type_: A type that is an instance of `Monad`.
+
+    Returns:
+        A decorator to wrap a function with.
+    """
 
     def decorator(func):
-        tree = build(func, cls)
+        tree = _tree(type_, func)
         code = compile(tree, '<source>', 'exec')
 
         globals_ = vars(import_module(func.__module__))
@@ -25,8 +69,20 @@ def monad(cls):
     return decorator
 
 
-def build(func, cls):
-    """Constructs a tree of a monadic lambda from the specified function."""
+def _tree(type_: Type, func: Callable) -> ast.AST:
+    """Constructs an abstract syntax tree of a chain of bindings.
+
+    Args:
+        type_: A type that is an instance of `Monad`.
+        func: A function to construct a tree from.
+
+    Returns:
+        An abstract syntax tree constructed from the specified function.
+
+    Raises:
+        SyntaxError: Raised in a case if the specified function contains
+            invalid statements.
+    """
 
     def arg(name):
         return ast.arg(arg=name, annotation=None, type_comment=None)
@@ -44,9 +100,10 @@ def build(func, cls):
                                  defaults=[])
 
     def attr(name):
-        return ast.Attribute(value=ast.Name(id=cls.__name__, ctx=ast.Load()),
-                             attr=name,
-                             ctx=ast.Load())
+        return ast.Attribute(
+            value=ast.Name(id=type_.__name__, ctx=ast.Load()),
+            attr=name,
+            ctx=ast.Load())
 
     def call(func_, args_):
         return ast.Call(func=func_, args=args_, keywords=[])
