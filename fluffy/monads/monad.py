@@ -2,7 +2,7 @@ import ast
 import inspect
 from functools import wraps
 from importlib import import_module
-from typing import Type, Callable
+from typing import Type, Callable, List, Union
 
 
 def monad(type_: Type) -> Callable:
@@ -60,11 +60,14 @@ def monad(type_: Type) -> Callable:
 
         exec(code, globals_, locals_)
 
-        @wraps(func)
-        def decorated(*args, **kwargs):
-            return locals_[func.__name__](*args, **kwargs)
+        if func.__name__ in locals_:
+            newfunc = locals_[func.__name__]
+            newfunc = wraps(func)(newfunc)
+        else:
+            raise Exception(f'The function "{func.__name__}" '
+                            f'was not constructed correctly.')
 
-        return decorated
+        return newfunc
 
     return decorator
 
@@ -84,95 +87,107 @@ def _tree(type_: Type, func: Callable) -> ast.AST:
             invalid statements.
     """
 
-    def arg(name):
-        return ast.arg(arg=name, annotation=None, type_comment=None)
-
-    def args(names):
-        if isinstance(names, ast.arguments):
-            return names
-        else:
-            return ast.arguments(posonlyargs=[],
-                                 args=[arg(name) for name in names],
-                                 vararg=None,
-                                 kwonlyargs=[],
-                                 kw_defaults=[],
-                                 kwarg=None,
-                                 defaults=[])
-
-    def attr(name):
-        return ast.Attribute(
-            value=ast.Name(id=type_.__name__, ctx=ast.Load()),
-            attr=name,
-            ctx=ast.Load())
-
-    def call(func_, args_):
-        return ast.Call(func=func_, args=args_, keywords=[])
-
-    def lambda_(args_, body_):
-        return ast.Lambda(args=args(args_), body=body_)
-
-    def assign(name, value):
-        return ast.Assign(targets=[ast.Name(id=name, ctx=ast.Store())],
-                          value=value,
-                          type_comment=None)
-
-    def module(*statements):
-        return ast.Module(body=list(statements), type_ignores=[])
-
     tree = ast.parse(inspect.getsource(func))
 
-    unit = attr('unit')
-    bind = attr('bind')
+    unit = _attr(type_.__name__, 'unit')
+    bind = _attr(type_.__name__, 'bind')
 
-    def monad_(i=0):
-        """Converts the code from the i-th line to a monad."""
+    def _from(i: int) -> ast.AST:
+        """Constructs a tree from the i-th line."""
 
         line = tree.body[0].body[i]
 
         if isinstance(line, ast.Return):
-            return call(unit, [line.value])
+            return _call(unit, [line.value])
 
         if isinstance(line, ast.Assign):
             if len(line.targets) != 1:
-                raise SyntaxError(f'Only 1 variable can be assigned.')
+                raise SyntaxError(f'Only one variable can be assigned.')
 
-            # Expressions like `x = yield y`.
+            # Expressions like `x = yield m`.
             # The same as `x <- y` in Haskell.
             if isinstance(line.value, ast.Yield):
                 n = line.targets[0].id  # The name of the variable.
                 m = line.value.value    # The value after `yield`.
-                g = lambda_([n], monad_(i + 1))
+                g = _lambda([n], _from(i + 1))
 
-                return call(bind, [m, g])
+                return _call(bind, [m, g])
 
-            # Expressions like `x = y`.
-            # The same as `let x = y` in Haskell.
+            # Expressions like `x = g(y)`.
+            # The same as `let x = g y` in Haskell.
             else:
                 n = line.targets[0].id  # The name of the variable.
                 x = line.value          # The value being assigned to.
-                f = lambda_([n], monad_(i + 1))
+                f = _lambda([n], _from(i + 1))
 
-                return call(f, [x])
+                return _call(f, [x])
 
         if isinstance(line, ast.Expr):
-
-            # Expressions like `yield y`.
-            # The same as `y` in Haskell.
+            # Expressions like `yield m`.
+            # The same as `m` in Haskell.
             if isinstance(line.value, ast.Yield):
                 m = line.value.value  # The value after `yield`.
-                g = lambda_(['_'], monad_(i + 1))
+                g = _lambda(['_'], _from(i + 1))
 
-                return call(bind, [m, g])
+                return _call(bind, [m, g])
 
             # Documentation.
             if isinstance(line.value, ast.Constant) and \
                isinstance(line.value.value, str):
-                return monad_(i + 1)
+                return _from(i + 1)
 
         raise SyntaxError(f'Invalid statement: {line}.')
 
-    result = lambda_(tree.body[0].args, monad_())
-    result = assign(func.__name__, result)
-    result = ast.fix_missing_locations(module(result))
+    result = _lambda(tree.body[0].args, _from(0))
+    result = _assign(func.__name__, result)
+    result = ast.fix_missing_locations(_module(result))
 
     return result
+
+
+def _arg(name: str) -> ast.arg:
+    """Creates an instance of `ast.arg` with the specified name."""
+    return ast.arg(arg=name, annotation=None, type_comment=None)
+
+
+def _args(names: List[str]) -> ast.arguments:
+    """Creates an instance of `ast.arguments`."""
+    return ast.arguments(posonlyargs=[],
+                         args=[_arg(name) for name in names],
+                         vararg=None,
+                         kwonlyargs=[],
+                         kw_defaults=[],
+                         kwarg=None,
+                         defaults=[])
+
+
+def _attr(value: str, name: str) -> ast.Attribute:
+    """Creates an instance of `ast.Attribute`."""
+    return ast.Attribute(value=ast.Name(id=value, ctx=ast.Load()),
+                         attr=name,
+                         ctx=ast.Load())
+
+
+def _call(func: ast.AST, args: List) -> ast.Call:
+    """Creates an instance of `ast.Call`."""
+    return ast.Call(func=func, args=args, keywords=[])
+
+
+def _lambda(args: Union[List, ast.arguments], body: ast.AST) -> ast.Lambda:
+    """Creates an instance of `ast.Lambda`."""
+    if isinstance(args, ast.arguments):
+        return ast.Lambda(args=args, body=body)
+    else:
+        return ast.Lambda(args=_args(args), body=body)
+
+
+def _assign(name: str, value: ast.AST) -> ast.Assign:
+    """Creates an instance of `ast.Assign`."""
+    return ast.Assign(targets=[ast.Name(id=name, ctx=ast.Store())],
+                      value=value,
+                      type_comment=None)
+
+
+def _module(*statements: ast.AST) -> ast.Module:
+    """Creates an instance of `ast.Module`."""
+    return ast.Module(body=list(statements), type_ignores=[])
