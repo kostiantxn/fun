@@ -42,7 +42,7 @@ def monad(type_: Type) -> Callable:
             )))
         )
 
-        # Here `>>=` is the `List.bind` function.
+        # Here `m >>= g` is `List.bind(m, g)`.
 
     Args:
         type_: A type that is an instance of `Monad`.
@@ -62,12 +62,15 @@ def monad(type_: Type) -> Callable:
 
         if func.__name__ in locals_:
             newfunc = locals_[func.__name__]
-            newfunc = wraps(func)(newfunc)
         else:
             raise Exception(f'The function "{func.__name__}" '
                             f'was not constructed correctly.')
 
-        return newfunc
+        @wraps(func)
+        def decorated(*args, **kwargs):
+            return newfunc(*args, **kwargs)
+
+        return decorated
 
     return decorator
 
