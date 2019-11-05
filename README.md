@@ -1,9 +1,19 @@
 # fluffy
-A package for functional programming in Python.
+_A package for functional programming in Python._
 
-## Quick examples
+`fluffy` contains implementations of some features you can find in functional languages such as Haskell.
+Those features are not implemented by default in any standard library, and that's why `fluffy` may come in handy.
+The `fluffy` package includes:
+
+  * Pattern matching. [[1]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#pattern-matching)
+  * Monads. [[2]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#monads)
+
+## Examples
 
 #### Pattern matching
+You can use `fluffy.patterns` for pattern matching.
+Here is a simple example:
+
 ``` python
 from fluffy.patterns import match, case
 
@@ -16,8 +26,31 @@ greeting = match(language, case | 'English' > 'Hello, world!',
 print(greeting)  # Prints 'Bonjour le monde!'.
 ```
 
+But not only strings can be matched.
+You can use the package to match almost anything you could think of: primitive built-in types (`int`, `float`, `complex`, `bool`, `str`), standard collections (`list`, `tuple` and `dict`), data classes.
+
+Sometimes you may need to use variables in pattern matching.
+The `fluffy.patterns` package provides an ability to achieve this.
+Here is an example:
+
+``` python
+from fluffy.patterns import match, case, x, y
+
+expression = [10, '*', 20]
+
+result = match(expression, case | [x, '+', y] > x + y,
+                           case | [x, '-', y] > x - y,
+                           case | [x, '*', y] > x * y,
+                           case | [x, '/', y] > x / y)
+
+print(result)  # Prints '200'.
+```
+
+Read the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#pattern-matching) to find out more about pattern matching with `fluffy.patterns`.
 
 #### Monads
+The `fluffy.monads` package allows you to write monadic functions:
+
 ``` python
 from fluffy.monads import monad, List
 
@@ -33,15 +66,27 @@ def triples(n):
 print(triples(15))  # Prints 'List[(3, 4, 5), (5, 12, 13), (6, 8, 10), (9, 12, 15)]'.
 ```
 
+The `monad` decorator allows you to utilise the notation similar to the `do` notation in Haskell.
+Thus, a function being wrapped by this decorator must use only a fixed set of statements.
+Below you can see the table with allowed statements and their equivalent in Haskell.
+
+| Python        | Haskell       |
+| ------------- | ------------- |
+| `x = g(y)`    | `let x = g y` |
+| `x = yield m` | `x <- m`      |
+| `yield m`     | `m`           |
+| `return x`    | `return x`    |
+
+You can read more about `fluffy.monads` in the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#pattern-matching).
+
+## Motivation
+...
+
 ## Installation
 ...
 
 ## Guide
-You can read the 
-[guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md) 
-to learn more about the package!
+You can read the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md) to learn more about the package!
 
 ## License
-The package is licensed under the 
-[MIT](https://github.com/konstantin-ogulchansky/fluffy/blob/master/LICENSE) 
-License.
+The package is licensed under the [MIT](https://github.com/konstantin-ogulchansky/fluffy/blob/master/LICENSE) License.
