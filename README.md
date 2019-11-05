@@ -56,6 +56,8 @@ from fluffy.monads import monad, List
 
 @monad(List)
 def triples(n):
+    """Pythagorean triples."""
+
     x = yield List[1, ..., n]
     y = yield List[x, ..., n]
     z = yield List[y, ..., n]
@@ -77,7 +79,7 @@ Below you can see the table with allowed statements and their equivalent in Hask
 | `yield m`     | `m`           |
 | `return x`    | `return x`    |
 
-You can read more about `fluffy.monads` in the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#pattern-matching).
+You can read more about `fluffy.monads` in the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#monads).
 
 ## Motivation
 ...
