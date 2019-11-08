@@ -87,8 +87,9 @@ You can read more about `fluffy.monads` in the [guide](https://github.com/konsta
 ## Installation
 ...
 
-## Guide
-You can read the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md) to learn more about the package!
+## Learn more
+Check out the [docs](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs). <br>
+Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/master/examples).
 
 ## License
 The package is licensed under the [MIT](https://github.com/konstantin-ogulchansky/fluffy/blob/master/LICENSE) License.
