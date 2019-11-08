@@ -38,6 +38,8 @@ def pattern(value: Any) -> 'Pattern':
         return DictionaryPattern(value)
     elif isinstance(value, Variable):
         return VariablePattern(value.name)
+    elif isinstance(value, type):
+        return TypePattern(value)
     elif is_dataclass(value):
         return DataclassPattern(value)
 
@@ -385,7 +387,7 @@ class TypePattern(Pattern):
             value with.
     """
 
-    def __init__(self, value: Type, variable: Optional[str]):
+    def __init__(self, value: Type, variable: Optional[str] = None):
         self.value = value
         self.variable = variable
 

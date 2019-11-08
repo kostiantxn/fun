@@ -11,4 +11,15 @@ def with_lists():
                                case | [x, '*', y] > x * y,
                                case | [x, '/', y] > x / y)
 
-    assert result == 200
+    print(result)  # Prints '200'.
+
+
+def with_types():
+    """This example demonstrates how types can be matched."""
+
+    value = 'amazing'
+
+    result = match(value, case | x[:int] > x + 451,
+                          case | x[:str] > 'wow, ' + x)
+
+    print(result)  # Prints 'wow, amazing'.

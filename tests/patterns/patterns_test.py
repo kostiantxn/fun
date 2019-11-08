@@ -5,7 +5,7 @@ import pytest
 
 from fluffy.patterns import pattern, x, y, z, \
     FixedPattern, SequencePattern, DictionaryPattern, DataclassPattern, \
-    VariablePattern, Match
+    VariablePattern, Match, TypePattern
 
 
 @dataclass
@@ -18,7 +18,8 @@ class Vector:
     (FixedPattern, [42, 42.0, 42j, True, '451']),
     (SequencePattern, [(1, 2, 3), [1, 2, 3]]),
     (DictionaryPattern, [{'a': 'b'}]),
-    (DataclassPattern, [Vector(1, 2)])
+    (DataclassPattern, [Vector(1, 2)]),
+    (TypePattern, [int, list, Vector])
 ])
 def test_pattern_return_value(type_, values):
     """Tests that `pattern` returns values of correct type."""
@@ -239,6 +240,35 @@ def test_dataclass_pattern_failed_match(value, test):
     """Test that `DataclassMatch` fails to match input values."""
 
     p = DataclassPattern(value)
+    m = p.match(test)
+
+    assert m.is_failure()
+
+
+@pytest.mark.parametrize("value, test, variables", [
+    ((int,    ), 1,            {}),
+    ((list,   ), [1, 5, 'x'],  {}),
+    ((Vector, ), Vector(1, 2), {}),
+    ((str, 'x'), 'abc',        {'x': 'abc'}),
+])
+def test_type_pattern_successful_match(value, test, variables):
+    """Test that `TypePattern` correctly matches input values."""
+
+    p = TypePattern(*value)
+    m = p.match(test)
+
+    assert m.is_success()
+    assert m.variables == variables
+
+
+@pytest.mark.parametrize("value, test", [
+    ((int,     ), 1.0),
+    ((list, 'x'), (1, 2))
+])
+def test_type_pattern_failed_match(value, test):
+    """Test that `TypePattern` fails to match input values."""
+
+    p = TypePattern(*value)
     m = p.match(test)
 
     assert m.is_failure()

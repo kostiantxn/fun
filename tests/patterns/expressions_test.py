@@ -5,7 +5,7 @@ from pytest import mark
 
 from fluffy.patterns import expression, \
     Constant, Variable, Sequence, Dictionary, Function, Error, EvaluationError, \
-    Attribute, Call
+    Attribute, Call, TypePattern
 
 
 @mark.parametrize("type_, values", [
@@ -64,6 +64,32 @@ def test_variable_evaluate_raising_error():
 
     with pytest.raises(NameError):
         expr.evaluate({})
+
+
+def test_variable_get_item_result():
+    """Test that `Variable.__get_item__` returns an instance of `TypePattern`
+    with a correct name."""
+
+    x = Variable('x')
+    p = x[:int]
+
+    assert isinstance(p, TypePattern)
+    assert p.variable == x.name
+    assert p.value is int
+
+
+def test_variable_get_item_raising_error():
+    """Test that `Variable.__get_item__` raises an error when incorrect slice
+    format is specified."""
+
+    x = Variable('x')
+
+    with pytest.raises(ValueError, match='start'):
+        _ = x[1:int]
+    with pytest.raises(ValueError, match='step'):
+        _ = x[:int:1]
+    with pytest.raises(TypeError, match='stop'):
+        _ = x[:1]
 
 
 def test_function_evaluate_result():

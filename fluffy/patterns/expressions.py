@@ -152,7 +152,7 @@ class Constant(Expression):
         42
     """
 
-    def __init__(self, value):
+    def __init__(self, value: Any):
         """Initialises the object.
 
         Initialises the object with the value that will be returned during the
@@ -186,6 +186,19 @@ class Variable(Expression):
 
     def __init__(self, name: Optional[str]):
         self.name = name
+
+    def __getitem__(self, item: slice):
+        if item.start is not None:
+            raise ValueError('Invalid slice: `start` should not be specified.')
+        if item.step is not None:
+            raise ValueError('Invalid slice: `step` should not be specified.')
+        if not isinstance(item.stop, type):
+            raise TypeError(f'Invalid slice: `stop` should be of type {type},'
+                            f'but got {type(item.stop)}.')
+
+        from fluffy.patterns import TypePattern
+
+        return TypePattern(item.stop, self.name)
 
     def __repr__(self):
         return f'Variable(name={repr(self.name)})'
