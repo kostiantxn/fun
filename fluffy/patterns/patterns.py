@@ -407,19 +407,3 @@ class TypePattern(Pattern):
                 return Match.success()
         else:
             return Match.failure()
-
-
-class RegexPattern(Pattern):
-    """A pattern that matches a regular expression."""
-
-    def __init__(self, value: Union[str, re.Pattern]):
-        if isinstance(value, str):
-            value = re.compile(value)
-
-        self.pattern = value
-
-    def __repr__(self):
-        return f'RegexPattern(value={repr(self.pattern)})'
-
-    def match(self, value: Any) -> Match:
-        raise NotImplemented
