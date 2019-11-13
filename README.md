@@ -1,4 +1,7 @@
 # fluffy
+
+[![License](https://img.shields.io/github/license/konstantin-ogulchansky/fluffy)](https://github.com/konstantin-ogulchansky/fluffy/blob/master/LICENSE)
+
 _A package for functional programming in Python._
 
 `fluffy` contains implementations of some features you can find in functional languages such as Haskell.
