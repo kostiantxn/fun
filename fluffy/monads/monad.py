@@ -5,10 +5,48 @@ from importlib import import_module
 from typing import Type, Callable, List, Union
 
 
-def monad(type_: Type) -> Callable:
-    """Converts the decorated function to a monad.
+class Monad:
+    """The `Monad` type class.
 
-    Converts the function to a monadic evaluation of the specified type. The
+    This type class is equivalent to the `Monad` type class that is defined in
+    Haskell by default. The definition of it looks as follows:
+
+        class Monad m where
+            (>>=)  :: m a -> (  a -> m b) -> m b
+            (>>)   :: m a ->  m b         -> m b
+            return ::   a                 -> m a
+            fail   :: String -> m a
+
+    Since Python does not allow to define custom operators and `return` is a
+    reserved keyword, it is impossible to define these functions in the same
+    way as they are defined in Haskell.
+
+        m >>= g   is defined as      bind(m, g)
+        m >>  k   is defined as      then(m, k)
+        return x  is defined as      unit(x)
+        fail m    is not applicable
+    """
+
+    @classmethod
+    def unit(cls, x):
+        """Wraps the specified value `x` in a monad."""
+        raise NotImplemented
+
+    @classmethod
+    def bind(cls, m, g):
+        """Combines two monadic values."""
+        raise NotImplemented
+
+    @classmethod
+    def then(cls, m, k):
+        """Combines two monadic values."""
+        return cls.bind(m, lambda _: k)
+
+
+def monad(type_: Type) -> Callable:
+    """Converts the body of the decorated function to a monadic computation.
+
+    Converts the function to a monadic computation of the specified type. The
     function must consist of the following statements:
 
         x = g(y)     # The same as 'let x = g y' in Haskell.
@@ -49,7 +87,15 @@ def monad(type_: Type) -> Callable:
 
     Returns:
         A decorator to wrap a function with.
+
+    Raises:
+        TypeError: Raised when the specified `type_` argument is not a subclass
+            of `Monad`.
     """
+
+    if not issubclass(type_, Monad):
+        raise TypeError(f'The specified type {type_} '
+                        f'is not a subclass of {Monad}.')
 
     def decorator(func):
         tree = _tree(type_, func)
@@ -63,8 +109,8 @@ def monad(type_: Type) -> Callable:
         if func.__name__ in locals_:
             newfunc = locals_[func.__name__]
         else:
-            raise Exception(f'The function "{func.__name__}" '
-                            f'was not constructed correctly.')
+            raise RuntimeError(f'The function "{func.__name__}" '
+                               f'was not constructed correctly.')
 
         @wraps(func)
         def decorated(*args, **kwargs):
