@@ -49,11 +49,37 @@ result = match(expression, case | [x, '+', y] > x + y,
 print(result)  # Prints '200'.
 ```
 
-Read the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#pattern-matching) to find out more about pattern matching with `fluffy.patterns`.
+Read the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#pattern-matching) or check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/master/examples/patterns.py) to find out more about pattern matching with `fluffy.patterns`.
 
 #### Monads
 The `fluffy.monads` package allows you to write monadic functions:
 
+``` python
+from math import sqrt
+from fluffy.monads import monad, Maybe, Just, Nothing
+
+def divide(a, b):
+    return Just(a / b) if b != 0 else Nothing()
+
+def root(a):
+    return Just(sqrt(a)) if a >= 0 else Nothing()
+
+@monad(Maybe)
+def f(x, y):
+    """f(x, y) = 2 √(x / y)"""
+    
+    a = yield divide(x, y)
+    b = yield root(a)
+    c = 2 * b
+
+    return c
+
+print(f(18, 2))  # Prints 'Just 6.0'.
+print(f(18, 0))  # Prints 'Nothing'.
+print(f(-8, 2))  # Prints 'Nothing'.
+```
+
+You can use `List` as well:
 ``` python
 from fluffy.monads import monad, List
 
