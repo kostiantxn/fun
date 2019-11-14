@@ -1,6 +1,7 @@
 # fluffy
 
 [![License](https://img.shields.io/github/license/konstantin-ogulchansky/fluffy)](https://github.com/konstantin-ogulchansky/fluffy/blob/master/LICENSE)
+[![Workflow](https://github.com/konstantin-ogulchansky/fluffy/workflows/Python%20package/badge.svg)]()
 
 _A package for functional programming in Python._
 
