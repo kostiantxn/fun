@@ -1,16 +1,15 @@
 from typing import Any, Callable, Optional
 
+from fluffy.monads.monad import Monad
 
-class List:
+
+class List(Monad):
     """A linked list.
 
     An implementation of the linked list data structure. The implementation has
     the following form:
 
         data List a = Empty | Node a (List a)
-
-    The type implements the `Functor`, `Applicative`, `Monoid` and the `Monad`
-    type classes.
     """
 
     def __class_getitem__(cls, items: Any):
@@ -110,29 +109,10 @@ class List:
 
     @classmethod
     def unit(cls, x: Any) -> 'List':
-        """Implementation of the `unit :: a -> m a` function.
-
-        The same as `return x` in Haskell.
-
-        Args:
-            x: Any value to wrap into `List`.
-
-        Returns:
-            An instance of `List` containing a single `x`.
-        """
         return Node(x)
 
     @classmethod
     def bind(cls, m: 'List', g: Callable) -> 'List':
-        """Implementation of the `bind :: m a -> (a -> m b) -> m b` function.
-
-        The same as `m >>= g` in Haskell.
-
-        Args:
-            m: An instance of `List` to apply the function `g` to.
-            g: A function `a -> m b` to apply to each element of `m`.
-        """
-
         def concat(x, y):
             if isinstance(x, Empty):
                 return y
@@ -157,7 +137,7 @@ class List:
 class Node(List):
     """Represents a node of a linked list.
 
-    A node contains a value and a reference to the next node of the list.
+    A node contains a value and a reference to the next node of a list.
     """
 
     def __init__(self, value: Any, next_: Optional['Node'] = None):

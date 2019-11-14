@@ -1,4 +1,15 @@
-class Maybe:
+from typing import Any
+
+from fluffy.monads.monad import Monad
+
+
+class Maybe(Monad):
+    """An optional value.
+
+    The implementation has the following form:
+
+        data Maybe a = Just a | Nothing
+    """
 
     @classmethod
     def unit(cls, x):
@@ -13,15 +24,28 @@ class Maybe:
 
 
 class Just(Maybe):
+    """Represents an existing value."""
 
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, value: Any):
+        self._value = value
+
+    def __repr__(self):
+        return f'Just({repr(self._value)})'
 
     def __str__(self):
-        return f'Just {self.value}'
+        return f'Just {self._value}'
+
+    @property
+    def value(self) -> Any:
+        """Returns the stored value."""
+        return self._value
 
 
 class Nothing(Maybe):
+    """Represents an absence of a value."""
+
+    def __repr__(self):
+        return 'Nothing()'
 
     def __str__(self):
-        return f'Nothing'
+        return 'Nothing'

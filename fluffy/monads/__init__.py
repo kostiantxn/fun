@@ -1,2 +1,2 @@
-from fluffy.monads.monad import monad
+from fluffy.monads.monad import *
 from fluffy.monads.types import *
