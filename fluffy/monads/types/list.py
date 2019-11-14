@@ -65,10 +65,12 @@ class List:
 
             while item != end:
                 for _ in range(step - 1):
-                    if (item := succ(item)) == end:
+                    item = succ(item)
+                    if item == end:
                         return
 
-                yield (item := succ(item))
+                item = succ(item)
+                yield item
 
         def new(iterable):
             iterator = iter(iterable)
