@@ -43,7 +43,7 @@ class Monad:
         return cls.bind(m, lambda _: k)
 
 
-def monad(type_: Type) -> Callable:
+def monad(type_: Type[Monad]) -> Callable:
     """Converts the body of the decorated function to a monadic computation.
 
     Converts the function to a monadic computation of the specified type. The
@@ -121,7 +121,7 @@ def monad(type_: Type) -> Callable:
     return decorator
 
 
-def _tree(type_: Type, func: Callable) -> ast.AST:
+def _tree(type_: Type[Monad], func: Callable) -> ast.AST:
     """Constructs an abstract syntax tree of a chain of bindings.
 
     Args:
@@ -140,6 +140,7 @@ def _tree(type_: Type, func: Callable) -> ast.AST:
 
     unit = _attr(type_.__name__, 'unit')
     bind = _attr(type_.__name__, 'bind')
+    then = _attr(type_.__name__, 'then')
 
     def _from(i: int) -> ast.AST:
         """Constructs a tree from the i-th line."""
@@ -175,10 +176,13 @@ def _tree(type_: Type, func: Callable) -> ast.AST:
             # Expressions like `yield m`.
             # The same as `m` in Haskell.
             if isinstance(line.value, ast.Yield):
-                m = line.value.value  # The value after `yield`.
-                g = _lambda(['_'], _from(i + 1))
+                if i + 1 < len(tree.body[0].body):
+                    m = line.value.value  # The value after `yield`.
+                    k = _from(i + 1)
 
-                return _call(bind, [m, g])
+                    return _call(then, [m, k])
+                else:
+                    return line.value.value  # The value after `yield`.
 
             # Documentation.
             if isinstance(line.value, ast.Constant) and \
