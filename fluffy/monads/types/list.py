@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Iterable
 
 from fluffy.monads.monad import Monad
 
@@ -42,70 +42,54 @@ class List(Monad):
         if not isinstance(items, tuple):
             items = (items, )
 
-        def succ(item):
-            if not isinstance(item, int):
-                raise NotImplemented
-
-            return item + 1
-
-        def progression(start, next_, end):
-            if next_ is None:
-                next_ = succ(start)
-
-            item = start
-            step = 0
-
-            while item != next_:
-                item = succ(item)
-                step += 1
-
-            yield start
-            yield item
-
-            while item != end:
-                for _ in range(step - 1):
-                    item = succ(item)
-                    if item == end:
-                        return
-
-                item = succ(item)
-                yield item
-
-        def new(iterable):
-            iterator = iter(iterable)
-            result = None
-            node = None
-
-            while True:
-                try:
-                    item = next(iterator)
-
-                    if result is None:
-                        result = node = Node(item)
-                    else:
-                        node._next = Node(item)
-                        node = node.next
-                except StopIteration:
-                    break
-
-            return result or Empty()
+        def progression(start, end, step):
+            while start <= end:
+                yield start
+                start += step
 
         if len(items) == 3:
             # Sequences like [a, ..., c].
             if items[1] is ...:
-                return new(progression(items[0], None, items[2]))
+                a = items[0]
+                c = items[2]
+
+                return List.new(progression(a, c, step=1))
 
         if len(items) == 4:
             # Sequences like [a, b, ..., c].
             if items[2] is ...:
-                return new(progression(items[0], items[1], items[3]))
+                a = items[0]
+                b = items[1]
+                c = items[3]
 
-        return new(items)
+                return List.new(progression(a, c, step=b - a))
+
+        return List.new(items)
 
     @classmethod
     def empty(cls) -> 'List':
         """Creates an empty `List`."""
         return Empty()
+
+    @classmethod
+    def new(cls, items: Iterable[Any]) -> 'List':
+        """Creates a new `List` from the specified items.
+
+        Example:
+            >>> List.new([1, 2, 3])
+            Node(1, Node(2, Node(3, Empty())))
+
+            >>> List.new([])
+            Empty()
+        """
+
+        def new(iterator):
+            try:
+                return Node(next(iterator), new(iterator))
+            except StopIteration:
+                return Empty()
+
+        return new(iter(items))
 
     @classmethod
     def unit(cls, x: Any) -> 'List':
@@ -125,13 +109,13 @@ class List(Monad):
             if isinstance(x, Node):
                 return concat(x.value, join(x.next))
 
-        def fmap(x, f):
+        def fmap(f, x):
             if isinstance(x, Empty):
                 return Empty()
             if isinstance(x, Node):
-                return Node(f(x.value), fmap(x.next, f))
+                return Node(f(x.value), fmap(f, x.next))
 
-        return join(fmap(m, g))
+        return join(fmap(g, m))
 
 
 class Node(List):
@@ -140,7 +124,7 @@ class Node(List):
     A node contains a value and a reference to the next node of a list.
     """
 
-    def __init__(self, value: Any, next_: Optional['Node'] = None):
+    def __init__(self, value: Any, next_: Optional[List] = None):
         """Initialises the node.
 
         Args:
@@ -157,7 +141,7 @@ class Node(List):
         return self._value
 
     @property
-    def next(self) -> 'Node':
+    def next(self) -> List:
         """Returns the next node."""
         return self._next
 
@@ -168,7 +152,7 @@ class Node(List):
             node = node._next
 
     def __repr__(self):
-        return f'Node(value={repr(self._value)}, next_={repr(self._next)})'
+        return f'Node({repr(self._value)}, {repr(self._next)})'
 
     def __str__(self):
         return 'List[' + ', '.join(map(str, self)) + ']'
