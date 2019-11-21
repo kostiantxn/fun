@@ -1,5 +1,6 @@
 import ast
 import inspect
+from textwrap import dedent
 from functools import wraps
 from importlib import import_module
 from typing import Type, Callable, List, Union
@@ -136,7 +137,10 @@ def _tree(type_: Type[Monad], func: Callable) -> ast.AST:
             invalid statements.
     """
 
-    tree = ast.parse(inspect.getsource(func))
+    source = inspect.getsource(func)
+    source = dedent(source)
+
+    tree = ast.parse(source)
 
     unit = _attr(type_.__name__, 'unit')
     bind = _attr(type_.__name__, 'bind')
@@ -188,6 +192,10 @@ def _tree(type_: Type[Monad], func: Callable) -> ast.AST:
             if isinstance(line.value, ast.Constant) and \
                isinstance(line.value.value, str):
                 return _from(i + 1)
+
+        if isinstance(line, ast.FunctionDef):
+            raise NotImplemented('Local function definitions '
+                                 'are not supported yet.')
 
         raise SyntaxError(f'Invalid statement: {line}.')
 

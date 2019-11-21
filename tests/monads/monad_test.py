@@ -1,13 +1,12 @@
 from fluffy.monads import monad, Maybe, Just
 
 
-@monad(Maybe)
-def just(x):
-    return x
-
-
 def test_monad_with_return():
     """Test that `monad` handles the `return` statement correctly."""
+
+    @monad(Maybe)
+    def just(x):
+        return x
 
     result = just(42)
 
