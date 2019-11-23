@@ -12,7 +12,7 @@ class List(Monad):
         data List a = Empty | Node a (List a)
     """
 
-    def __class_getitem__(cls, items: Any):
+    def __class_getitem__(cls, items: Any) -> 'List':
         """Creates a `List` instance from a Python list.
 
         Creates an instance of `List` from the specified value. A value may
