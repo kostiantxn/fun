@@ -92,7 +92,7 @@ def triples(n):
     y = yield List[x, ..., n]
     z = yield List[y, ..., n]
 
-    yield List[(x, y, z)] if x**2 + y**2 == z**2 else \
+    yield List[(x, y, z),] if x**2 + y**2 == z**2 else \
           List.empty()
 
 print(triples(15))  # Prints 'List[(3, 4, 5), (5, 12, 13), (6, 8, 10), (9, 12, 15)]'.
