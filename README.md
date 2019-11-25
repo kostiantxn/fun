@@ -121,5 +121,11 @@ You can read more about `fluffy.monads` in the [guide](https://github.com/konsta
 Check out the [docs](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs). <br>
 Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/master/examples).
 
+## Plan
+- [x] Pattern matching
+- [x] Monads
+- [ ] Type classes
+- [ ] Immutable data structures
+
 ## License
 The package is licensed under the [MIT](https://github.com/konstantin-ogulchansky/fluffy/blob/master/LICENSE) License.
