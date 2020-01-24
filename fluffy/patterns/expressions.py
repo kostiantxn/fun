@@ -29,11 +29,11 @@ def expression(value: Any) -> 'Expression':
 
     if isinstance(value, Expression):
         return value
-    elif isinstance(value, (int, float, complex, bool, str)):
+    if isinstance(value, (int, float, complex, bool, str)):
         return Constant(value)
-    elif isinstance(value, (list, tuple)):
+    if isinstance(value, (list, tuple)):
         return Sequence(value)
-    elif isinstance(value, dict):
+    if isinstance(value, dict):
         return Dictionary(value)
 
     raise TypeError(f'{value} cannot be converted to an expression.')
@@ -276,10 +276,10 @@ class Function(Expression):
 
 
 class Sequence(Expression):
-    """An expression that represents a sequence (list, tuple).
+    """An expression that represents a sequence (`list` or `tuple`).
 
     Attributes:
-        value: A list or tuples of expressions to evaluate.
+        value: A list or a tuple of expressions to evaluate.
 
     Examples:
         >>> x, y = Variable('x'), Variable('y')
@@ -345,8 +345,9 @@ class Attribute(Expression):
         ... class Person:
         ...     name: str
 
-        >>> expr = Variable('x')
-        >>> expr = Attribute(expr, 'name')
+        # Consturct an expression `x.name` and then
+        # substitute `x` with `Person(name='Richard')`.
+        >>> expr = Attribute(Variable('x'), 'name')
         >>> expr.evaluate({'x': Person(name='Richard')})
         'Richard'
     """
