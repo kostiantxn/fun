@@ -73,7 +73,7 @@ class List(Monad):
 
     @classmethod
     def new(cls, items: Iterable[Any]) -> 'List':
-        """Creates a new `List` from the specified items.
+        """Creates an instance of `List` from the specified iterable.
 
         Example:
             >>> List.new([1, 2, 3])

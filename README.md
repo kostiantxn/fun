@@ -9,8 +9,9 @@ _A package for functional programming in Python._
 Those features are not implemented by default in any standard library, and that's why `fluffy` may come in handy.
 The `fluffy` package includes:
 
-  * Pattern matching. [[1]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#pattern-matching)
-  * Monads. [[2]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#monads)
+  * Pattern matching. [[1]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/README.md#pattern-matching)
+  * Monads. [[2]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/README.md#monads)
+  * Currying. [[3]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/README.md#currying)
 
 ## Examples
 
@@ -31,7 +32,9 @@ print(greeting)  # Prints 'Bonjour le monde!'.
 ```
 
 But not only strings can be matched.
-You can use the package to match almost anything you could think of: primitive built-in types (`int`, `float`, `complex`, `bool`, `str`), standard collections (`list`, `tuple` and `dict`), data classes.
+You can use the package to match almost anything you could think of: 
+primitive built-in types (`int`, `float`, `complex`, `bool`, `str`), 
+standard collections (`list`, `tuple` and `dict`), data classes.
 
 Sometimes you may need to use variables in pattern matching.
 The `fluffy.patterns` package provides an ability to achieve this.
@@ -50,7 +53,8 @@ result = match(expression, case | [x, '+', y] > x + y,
 print(result)  # Prints '200'.
 ```
 
-Read the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#pattern-matching) or check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/master/examples/patterns.py) to find out more about pattern matching with `fluffy.patterns`.
+Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/master/examples/patterns.py) to find out 
+more about pattern matching with `fluffy.patterns`.
 
 #### Monads
 The `fluffy.monads` package allows you to write monadic functions:
@@ -109,16 +113,23 @@ Below you can see the table with allowed statements and their equivalent in Hask
 | `yield m`     | `m`           |
 | `return x`    | `return x`    |
 
-You can read more about `fluffy.monads` in the [guide](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs/guide.md#monads).
+#### Currying
+The `fluffy.currying` provides an ability to write curried functions:
+```python
+from fluffy.currying import curry
 
-## Motivation
-...
+@curry
+def add(x, y):
+    return x + y
 
-## Installation
-...
+print(add(1, 2))      # Prints 3.
+print(add(1)(2))      # Prints 3.
+print(add(1)(y=2))    # Prints 3.
+print(add(x=1)(y=2))  # Prints 3.
+print(add(x=1)(2))    # Raises a `ValueError`.
+```
 
 ## Learn more
-Check out the [docs](https://github.com/konstantin-ogulchansky/fluffy/tree/master/docs). <br>
 Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/master/examples).
 
 ## Plan

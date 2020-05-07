@@ -84,7 +84,7 @@ def monad(type_: Type[Monad]) -> Callable:
         # Here `m >>= g` is `List.bind(m, g)`.
 
     Args:
-        type_: A type that is an instance of `Monad`.
+        type_: A type that is an instance of the `Monad` type class.
 
     Returns:
         A decorator to wrap a function with.
@@ -99,12 +99,17 @@ def monad(type_: Type[Monad]) -> Callable:
                         f'is not a subclass of {Monad}.')
 
     def decorator(func):
+        # Convert the decorated function to a monadic computation.
         tree = _tree(type_, func)
         code = compile(tree, '<source>', 'exec')
 
+        # Extract global variables from the module
+        # where the function is defined.
         globals_ = vars(import_module(func.__module__))
         locals_ = {}
 
+        # Execute the constructed code with a brand new function.
+        # The new function will be stored in `locals_'.
         exec(code, globals_, locals_)
 
         if func.__name__ in locals_:
