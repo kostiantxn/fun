@@ -9,9 +9,9 @@ _A package for functional programming in Python._
 Those features are not implemented by default in any standard library, and that's why `fluffy` may come in handy.
 The `fluffy` package includes:
 
-  * Pattern matching. [[1]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/README.md#pattern-matching)
-  * Monads. [[2]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/README.md#monads)
-  * Currying. [[3]](https://github.com/konstantin-ogulchansky/fluffy/tree/master/README.md#currying)
+  * Pattern matching. [[1]](https://github.com/konstantin-ogulchansky/fluffy#pattern-matching)
+  * Monads. [[2]](https://github.com/konstantin-ogulchansky/fluffy#monads)
+  * Currying. [[3]](https://github.com/konstantin-ogulchansky/fluffy#currying)
 
 ## Examples
 
@@ -57,7 +57,7 @@ Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/m
 more about pattern matching with `fluffy.patterns`.
 
 #### Monads
-The `fluffy.monads` package allows you to write monadic functions:
+The `fluffy.monads` module allows you to write monadic functions:
 
 ``` python
 from math import sqrt
@@ -114,7 +114,7 @@ Below you can see the table with allowed statements and their equivalent in Hask
 | `return x`    | `return x`    |
 
 #### Currying
-The `fluffy.currying` provides an ability to write curried functions:
+The `fluffy.currying` module provides an ability to write curried functions:
 ```python
 from fluffy.currying import curry
 
@@ -135,6 +135,7 @@ Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/m
 ## Plan
 - [x] Pattern matching
 - [x] Monads
+- [x] Currying
 - [ ] Type classes
 - [ ] Immutable data structures
 
