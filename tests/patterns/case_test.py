@@ -1,4 +1,4 @@
-from fluffy.patterns import Case
+from fun.patterns import Case
 
 
 def test_attributes_of_case():

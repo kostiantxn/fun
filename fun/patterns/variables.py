@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from fluffy.patterns.expressions import Variable
+from fun.patterns.expressions import Variable
 
 
 def variables(names: Union[list, tuple, str]) -> List[Variable]:

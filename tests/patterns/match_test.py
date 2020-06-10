@@ -2,7 +2,7 @@ from typing import Dict, Any
 
 import pytest
 
-from fluffy.patterns import match, case, x, Expression, MismatchError
+from fun.patterns import match, case, x, Expression, MismatchError
 
 
 def test_match_return_value():

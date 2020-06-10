@@ -1,6 +1,6 @@
 from math import sqrt
 
-from fluffy.monads import monad, Just, Nothing, Maybe, List
+from fun.monads import monad, Just, Nothing, Maybe, List
 
 
 def divide(a, b):

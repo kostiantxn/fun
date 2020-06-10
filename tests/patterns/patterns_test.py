@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from fluffy.patterns import pattern, x, y, z, \
+from fun.patterns import pattern, x, y, z, \
     FixedPattern, SequencePattern, DictionaryPattern, DataclassPattern, \
     VariablePattern, Match, TypePattern
 

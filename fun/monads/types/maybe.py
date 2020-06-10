@@ -1,6 +1,6 @@
 from typing import Any
 
-from fluffy.monads.monad import Monad
+from fun.monads.monad import Monad
 
 
 class Maybe(Monad):

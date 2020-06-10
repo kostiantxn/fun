@@ -1,4 +1,4 @@
-from fluffy.monads import Monad
+from fun.monads import Monad
 
 
 class Function(Monad):

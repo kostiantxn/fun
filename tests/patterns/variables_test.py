@@ -1,6 +1,6 @@
 import pytest
 
-from fluffy.patterns import variables, Variable
+from fun.patterns import variables, Variable
 
 
 @pytest.mark.parametrize("value, names", [

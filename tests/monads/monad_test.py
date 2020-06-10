@@ -1,4 +1,4 @@
-from fluffy.monads import monad, Maybe, Just
+from fun.monads import monad, Maybe, Just
 
 
 def test_monad_with_return():

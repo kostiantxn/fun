@@ -2,7 +2,7 @@ import operator
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, Union, Callable, Optional
 
-from fluffy.patterns.errors import EvaluationError
+from fun.patterns.errors import EvaluationError
 
 
 def expression(value: Any) -> 'Expression':
@@ -196,7 +196,7 @@ class Variable(Expression):
             raise TypeError(f'Invalid slice: `stop` should be of type {type},'
                             f'but got {type(item.stop)}.')
 
-        from fluffy.patterns import TypePattern
+        from fun.patterns import TypePattern
 
         return TypePattern(item.stop, self.name)
 

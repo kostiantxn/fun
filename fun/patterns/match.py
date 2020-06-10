@@ -1,7 +1,7 @@
 from typing import Any
 
-from fluffy.patterns.case import Case
-from fluffy.patterns.errors import MismatchError
+from fun.patterns.case import Case
+from fun.patterns.errors import MismatchError
 
 
 def match(value: Any, *cases: Case):
@@ -22,7 +22,7 @@ def match(value: Any, *cases: Case):
             the input value.
 
     Examples:
-        >>> from fluffy.patterns.case import case
+        >>> from fun.patterns.case import case
 
         >>> match(2, case | 1 > 'a',
         ...          case | 2 > 'b')

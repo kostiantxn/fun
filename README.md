@@ -1,26 +1,26 @@
-# fluffy
+# fun
 
-[![License](https://img.shields.io/github/license/konstantin-ogulchansky/fluffy)](https://github.com/konstantin-ogulchansky/fluffy/blob/master/LICENSE)
-[![Workflow](https://github.com/konstantin-ogulchansky/fluffy/workflows/build/badge.svg)](https://github.com/konstantin-ogulchansky/fluffy/actions?query=workflow%3A%22build%22)
+[![License](https://img.shields.io/github/license/konstantin-ogulchansky/fun)](https://github.com/konstantin-ogulchansky/fun/blob/master/LICENSE)
+[![Workflow](https://github.com/konstantin-ogulchansky/fun/workflows/build/badge.svg)](https://github.com/konstantin-ogulchansky/fun/actions?query=workflow%3A%22build%22)
 
 _A package for functional programming in Python._
 
-`fluffy` contains implementations of some features you can find in functional languages such as Haskell.
-Those features are not implemented by default in any standard library, and that's why `fluffy` may come in handy.
-The `fluffy` package includes:
+`fun` contains implementations of some features you can find in functional languages such as Haskell.
+Those features are not implemented by default in any standard library, and that's why `fun` may come in handy.
+The `fun` package includes:
 
-  * Pattern matching. [[1]](https://github.com/konstantin-ogulchansky/fluffy#pattern-matching)
-  * Monads. [[2]](https://github.com/konstantin-ogulchansky/fluffy#monads)
-  * Currying. [[3]](https://github.com/konstantin-ogulchansky/fluffy#currying)
+  * Pattern matching. [[1]](https://github.com/konstantin-ogulchansky/fun#pattern-matching)
+  * Monads. [[2]](https://github.com/konstantin-ogulchansky/fun#monads)
+  * Currying. [[3]](https://github.com/konstantin-ogulchansky/fun#currying)
 
 ## Examples
 
 #### Pattern matching
-You can use `fluffy.patterns` for pattern matching.
+You can use `fun.patterns` for pattern matching.
 Here is a simple example:
 
 ``` python
-from fluffy.patterns import match, case
+from fun.patterns import match, case
 
 language = 'French'
 
@@ -37,11 +37,11 @@ primitive built-in types (`int`, `float`, `complex`, `bool`, `str`),
 standard collections (`list`, `tuple` and `dict`), data classes.
 
 Sometimes you may need to use variables in pattern matching.
-The `fluffy.patterns` package provides an ability to achieve this.
+The `fun.patterns` package provides an ability to achieve this.
 Here is an example:
 
 ``` python
-from fluffy.patterns import match, case, x, y
+from fun.patterns import match, case, x, y
 
 expression = [10, '*', 20]
 
@@ -53,15 +53,15 @@ result = match(expression, case | [x, '+', y] > x + y,
 print(result)  # Prints '200'.
 ```
 
-Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/master/examples/patterns.py) to find out 
-more about pattern matching with `fluffy.patterns`.
+Check out the [examples](https://github.com/konstantin-ogulchansky/fun/tree/master/examples/patterns.py) to find out 
+more about pattern matching with `fun.patterns`.
 
 #### Monads
-The `fluffy.monads` module allows you to write monadic functions:
+The `fun.monads` module allows you to write monadic functions:
 
 ``` python
 from math import sqrt
-from fluffy.monads import monad, Maybe, Just, Nothing
+from fun.monads import monad, Maybe, Just, Nothing
 
 def divide(a, b):
     return Just(a / b) if b != 0 else Nothing()
@@ -86,7 +86,7 @@ print(f(-8, 2))  # Prints 'Nothing'.
 
 You can use `List` as well:
 ``` python
-from fluffy.monads import monad, List
+from fun.monads import monad, List
 
 @monad(List)
 def triples(n):
@@ -114,9 +114,9 @@ Below you can see the table with allowed statements and their equivalent in Hask
 | `return x`    | `return x`    |
 
 #### Currying
-The `fluffy.currying` module provides an ability to write curried functions:
+The `fun.currying` module provides an ability to write curried functions:
 ```python
-from fluffy.currying import curry
+from fun.currying import curry
 
 @curry
 def add(x, y):
@@ -130,7 +130,7 @@ print(add(x=1)(2))    # Raises a `ValueError`.
 ```
 
 ## Learn more
-Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/master/examples).
+Check out the [examples](https://github.com/konstantin-ogulchansky/fun/tree/master/examples).
 
 ## Plan
 - [x] Pattern matching
@@ -140,4 +140,4 @@ Check out the [examples](https://github.com/konstantin-ogulchansky/fluffy/tree/m
 - [ ] Immutable data structures
 
 ## License
-The package is licensed under the [MIT](https://github.com/konstantin-ogulchansky/fluffy/blob/master/LICENSE) License.
+The package is licensed under the [MIT](https://github.com/konstantin-ogulchansky/fun/blob/master/LICENSE) License.

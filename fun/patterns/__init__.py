@@ -1,10 +1,10 @@
-from fluffy.patterns.case import *
-from fluffy.patterns.errors import *
-from fluffy.patterns.expressions import *
-from fluffy.patterns.match import *
-from fluffy.patterns.patterns import *
-from fluffy.patterns.variables import *
-from fluffy.patterns.variables import _
+from fun.patterns.case import *
+from fun.patterns.errors import *
+from fun.patterns.expressions import *
+from fun.patterns.match import *
+from fun.patterns.patterns import *
+from fun.patterns.variables import *
+from fun.patterns.variables import _
 
 
 def error(value: Any) -> Error:

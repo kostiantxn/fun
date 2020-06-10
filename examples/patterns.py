@@ -1,4 +1,4 @@
-from fluffy.patterns import match, case, x, y
+from fun.patterns import match, case, x, y
 
 
 def with_lists():

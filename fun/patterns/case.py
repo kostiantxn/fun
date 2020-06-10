@@ -1,5 +1,5 @@
-from fluffy.patterns.patterns import pattern
-from fluffy.patterns.expressions import expression
+from fun.patterns.patterns import pattern
+from fun.patterns.expressions import expression
 
 
 class Case:

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 from pytest import mark
 
-from fluffy.patterns import expression, \
+from fun.patterns import expression, \
     Constant, Variable, Sequence, Dictionary, Function, Error, EvaluationError, \
     Attribute, Call, TypePattern
 
