@@ -9,9 +9,9 @@ _A package for functional programming in Python._
 Those features are not implemented by default in any standard library, and that's why `fun` may come in handy.
 The `fun` package includes:
 
-  * Pattern matching. [[1]](https://github.com/kostiantxn/fun#pattern-matching)
-  * Monads. [[2]](https://github.com/kostiantxn/fun#monads)
-  * Currying. [[3]](https://github.com/kostiantxn/fun#currying)
+  - [x] Pattern matching [[1]](https://github.com/kostiantxn/fun#pattern-matching)
+  - [x] Monads [[2]](https://github.com/kostiantxn/fun#monads)
+  - [x] Currying [[3]](https://github.com/kostiantxn/fun#currying)
 
 ## Examples
 
@@ -131,13 +131,6 @@ print(add(x=1)(2))    # Raises a `ValueError`.
 
 ### More
 For more examples, check out the [examples](https://github.com/kostiantxn/fun/tree/master/examples) directory.
-
-## Future?
-- [x] Pattern matching
-- [x] Monads
-- [x] Currying
-- [ ] Type classes
-- [ ] Immutable data structures
 
 ## License
 The package is licensed under the [MIT](https://github.com/kostiantxn/fun/blob/master/LICENSE) License.
