@@ -1,6 +1,6 @@
 # fun
 
-[![License](https://img.shields.io/github/license/kostiantxn/fun)](https://github.com/kostiantxn/fun/blob/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Workflow](https://github.com/kostiantxn/fun/workflows/build/badge.svg)](https://github.com/kostiantxn/fun/actions?query=workflow%3A%22build%22)
 
 _A package for functional programming in Python._
